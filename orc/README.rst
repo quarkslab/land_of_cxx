@@ -18,4 +18,33 @@ And run::
 
 You can now checkout branch ``orc/level0`` to start the tutorial!
 
+Level 0
+-------
 
+Let's roll! To begin with, the banner of the game looks very minimalistic. We
+would like to use some ASCII art to make it look prettier::
+
+      _______________________-------------------                       `\
+     /:--__                                                              |
+    ||< > |                                   ___________________________/
+    | \__/_________________-------------------                         |
+    |                                                                  |
+     |                               ORC                                |
+     |                                                                  |
+      |                                              ____________________|_
+      |  ___________________-------------------------                      `\
+      |/`--_                                                                 |
+      ||[ ]||                                            ___________________/
+       \===/___________________--------------------------
+
+
+To do so, we can use a new feature from C++11, *raw string literals*::
+
+    R"(unquoted\ stuff)"
+    R"delim(!%
+    $)delim"
+
+We can for instance put the banner in a ``static const char []``, or in an
+unnamed namespace, and feed it to ``std::cout``.
+
+Easy enough? Move on to next level!
