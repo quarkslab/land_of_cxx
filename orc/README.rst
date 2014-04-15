@@ -168,3 +168,100 @@ flip. The implementation of ``Warrior`` would have prevented to use
 
 Now we should win exactly half of the games... Not very entertaining. Try next
 level to make the game engine more complex!
+
+Level 3
+-------
+
+There are several kind of warriors in ORC. Brave Knights, pretty Elves and, of
+course, terrible ORCs. It's common to represent this using a simple class
+hierarchy. A ``Knight`` is just a ``Warrior`` with an HP boost::
+
+    class Knight : public Warrior {
+        public:
+
+        Knight(std::string const& name) : Warrior(name, START_HP + 10)
+        {
+        }
+        virtual ~Knight() {}
+    };
+
+An elf is much less tough, but it can chain several attacks in a row::
+
+    class Elf : public Warrior {
+        public:
+
+        Elf(std::string const& name) : Warrior(name, START_HP - 5)
+        {
+        }
+        virtual ~Elf() {}
+
+        void attack(Warrior& other) const {
+            Warrior::attack(other);
+            if(flip(coin))
+                attack(other);
+        }
+    };
+
+And an ``Orc`` is a real warrior with a single-or double slash::
+
+    class Orc : public Warrior {
+        public:
+        Orc(std::string const& name) : Warrior(name)
+        {
+        }
+        virtual ~Orc() {}
+
+        void attack(Warrior& other) const {
+            Warrior::attack(other);
+            if(flip(coin))
+                Warrior::attack(other);
+        }
+    };
+
+Do not forget to make ``attack`` virtual in the base class, and to a virtual destructor!
+
+The name of the warrior somehow lacks the flavor brought by *Aegnor* the elf or
+*Gorbag* the orc. Let's implement a default constructor for each race that
+randomly picks a flavorful name::
+
+    Elf() : Elf(elvish_names[std::uniform_int_distribution<>{0, elvish_names.size() -1}(coin)])
+    {
+    }
+
+Note that the default constructor of ``Elf`` uses the other constructor of
+``Elf``. This is a new feature from C++11! Elvish_names is initialized as an
+``std::array`` which is just a thin wrapper around a plain array, with an
+interface compatible with the remainder of the standard library::
+
+    const std::array<std::string, 3> elvish_names{{"Aegnor", "Beleg", "Curufin"}};
+
+The ``vector`` is initialized through an ``initializer_list``, a pretty neat new feature too!
+
+
+Now that we have a more cosmopolitan world with a lot of funky names, instead
+of a ``Warrior``, the player can get a random race::
+
+    Warrior* pick_random_race(std::string const& name) {
+        std::array<Warrior *, 3> challengers{{ new Knight(name),
+                                              new Elf(name),
+                                              new Orc(name)
+                                           }};
+        std::random_shuffle(challengers.begin(), challengers.end());
+        std::for_each(challengers.begin() + 1, challengers.end(),
+                      [](Warrior * warrior) { delete warrior; });
+        return challengers[0];
+    }
+
+That's not very efficient, but it works. Note that ``array`` and initialization
+lists are used once again, and that we are also using a lambda function! More
+on this later though.
+
+In the ``main``, we can now write::
+
+    Warrior*me = pick_random_race("me"),
+           *other = new Orc();
+
+Don't forget to add the ``delete`` calls in the end ;-)
+
+Have you noticed how difficult it would be to use ``pick_random_race`` with the
+default constructors? More on this on next level!

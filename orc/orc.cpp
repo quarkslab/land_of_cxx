@@ -1,6 +1,8 @@
 #include <iostream>
 #include <algorithm>
 #include <random>
+#include <array>
+
 namespace {
     std::random_device rd;
     std::mt19937 coin(rd());
@@ -8,6 +10,9 @@ namespace {
 }
 
 long constexpr START_HP = 20;
+const std::array<std::string, 3> elvish_names{{"Aegnor", "Beleg", "Curufin"}};
+const std::array<std::string, 3> orcish_names{{"Azog", "Bolg", "Grishnakh"}};
+const std::array<std::string, 3> human_names {{"Anarion", "Vorondil", "Mardil"}};
 
 class Warrior {
     std::string const _name;
@@ -21,9 +26,11 @@ class Warrior {
         {
         }
 
+        virtual ~Warrior() {}
+
         Warrior(Warrior const&) = delete;
 
-        void attack(Warrior& other) const {
+        virtual void attack(Warrior& other) const {
             other._hp = std::max(0L, other._hp - 1);
         }
 
@@ -36,6 +43,54 @@ class Warrior {
         }
 };
 
+class Knight : public Warrior {
+    public:
+
+    Knight(std::string const& name) : Warrior(name, START_HP + 10)
+    {
+    }
+    Knight() : Knight(human_names[std::uniform_int_distribution<>{0, human_names.size() - 1}(coin)])
+    {
+    }
+    virtual ~Knight() {}
+};
+
+class Elf : public Warrior {
+    public:
+
+    Elf(std::string const& name) : Warrior(name, START_HP - 5)
+    {
+    }
+    Elf() : Elf(elvish_names[std::uniform_int_distribution<>{0, elvish_names.size() - 1}(coin)])
+    {
+    }
+    virtual ~Elf() {}
+
+    void attack(Warrior& other) const {
+        Warrior::attack(other);
+        if(flip(coin))
+            attack(other);
+    }
+};
+
+class Orc : public Warrior {
+    public:
+    Orc(std::string const& name) : Warrior(name)
+    {
+    }
+    Orc() : Orc(orcish_names[std::uniform_int_distribution<>{0, orcish_names.size() - 1}(coin)])
+    {
+    }
+
+    virtual ~Orc() {}
+
+    void attack(Warrior& other) const {
+        Warrior::attack(other);
+        if(flip(coin))
+            Warrior::attack(other);
+    }
+};
+
 void fight(Warrior& self, Warrior& other) {
     while(self and other) {
         Warrior *first= &self, *second = &other;
@@ -45,6 +100,17 @@ void fight(Warrior& self, Warrior& other) {
         if(*second)
             second->attack(*first);
     }
+}
+
+Warrior* pick_random_race(std::string const& name) {
+    std::array<Warrior *, 3> challengers{{ new Knight(name),
+                                          new Elf(name),
+                                          new Orc(name)
+                                       }};
+    std::random_shuffle(challengers.begin(), challengers.end());
+    std::for_each(challengers.begin() + 1, challengers.end(),
+                  [](Warrior * warrior) { delete warrior; });
+    return challengers[0];
 }
 
 static const char banner [] = R"(
@@ -65,12 +131,16 @@ static const char banner [] = R"(
 int main(int argc, char * argv[]) {
     std::cout << banner << std::endl;
 
-    Warrior me{"me"}, other{"other"};
+    Warrior*me = pick_random_race("me"),
+           *other = new Orc();
 
-    fight(me, other);
+    fight(*me, *other);
 
-    Warrior& winner = me ? me : other;
-    std::cout << R"(The winner is \o/ )" << winner.name() << R"( \o/)" << std::endl;
+    Warrior* winner = *me ? me : other;
+    std::cout << R"(The winner is \o/ )" << winner->name() << R"( \o/)" << std::endl;
+
+    delete me;
+    delete other;
 
     return 0;
 }
