@@ -129,3 +129,42 @@ C++11 called *uniform initialization* and it prevents strange stuffs like
 
 
 The game is not very fun as of now... let's step up one level!
+
+
+Level 2
+-------
+
+Let's start to add some randomness to the game. C++11 comes with a new
+``<random>`` library, that defines several random number generators and random
+distributions. To use it you first need to instantiate a random device, then a
+random number generator and finally a distribution. We'll use coin flips in the
+game, so::
+
+    namespace {
+        std::random_device rd;
+        std::mt19937 coin(rd());
+        std::uniform_int_distribution<> flip(0, 1);
+    }
+
+makes it possible to ``flip(coin)`` to get a random number in [0, 1].
+
+Let's use this randomness to choose which warrior attacks and which one retaliates::
+
+    void fight(Warrior& self, Warrior& other)
+    {
+        while(self and other) {
+            Warrior *first= &self, *second = &other;
+            if(flip(coin))
+                std::swap(first, *second);
+            first->attack(second);
+            if(*second)
+                second->attack(*first);
+        }
+    }
+
+Note how ``std::swap`` is used to permute the Warriors depending on the coin
+flip. The implementation of ``Warrior`` would have prevented to use
+``std::swap`` on the references as the copy constructor is deleted. Try it!
+
+Now we should win exactly half of the games... Not very entertaining. Try next
+level to make the game engine more complex!

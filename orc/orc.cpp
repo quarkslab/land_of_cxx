@@ -1,5 +1,11 @@
 #include <iostream>
 #include <algorithm>
+#include <random>
+namespace {
+    std::random_device rd;
+    std::mt19937 coin(rd());
+    std::uniform_int_distribution<> flip(0, 1);
+}
 
 long constexpr START_HP = 20;
 
@@ -32,9 +38,12 @@ class Warrior {
 
 void fight(Warrior& self, Warrior& other) {
     while(self and other) {
-        self.attack(other);
-        if(other) // don't attack if you're dead
-            other.attack(self);
+        Warrior *first= &self, *second = &other;
+        if(flip(coin))
+            std::swap(first, second);
+        first->attack(*second);
+        if(*second)
+            second->attack(*first);
     }
 }
 
@@ -57,6 +66,7 @@ int main(int argc, char * argv[]) {
     std::cout << banner << std::endl;
 
     Warrior me{"me"}, other{"other"};
+
     fight(me, other);
 
     Warrior& winner = me ? me : other;
