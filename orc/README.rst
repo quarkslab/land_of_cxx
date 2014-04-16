@@ -586,3 +586,101 @@ And updated when we ``buf`` the warrior::
 
 The game looks pretty decent now, you can start to play and see how many rounds
 you can survive before going to next level.
+
+Level 8
+-------
+
+The race we are fighting with in ORC is chosen at random. That's not very
+satisfying: I don't want to be a ``Knight``. I wanna be an ``Orc``! So let's
+start some more meta-programming, and define a way to pick a race. To do so, we
+will associate a key to each race. This could be done by adding a static field
+to each race, but we'll use type trait to do so. A trait begins as a templated
+``struct`` declaration::
+
+    template<class T> struct race_trait;
+
+Then we specialize this template for each race::
+
+    template<>
+    struct race_trait<Knight> {
+        static constexpr char value[] = "knight";
+    };
+    constexpr char race_trait<Knight>::value[];
+
+And so fourth for the other races. Note that each trait can be evaluated at compile time thanks to the ``constexpr`` keyword.
+
+Now let's write the ``pick_race`` function. It resembles the ``pick_random_race`` function::
+
+    template < class... Races, template <class...> class RaceSelector>
+    Warrior* pick_race(RaceSelector<Races...>, std::string const& name, std::istream& is, std::ostream& os)
+    {
+        static_assert(sizeof...(Races)>=1, "at least one race");
+
+        static const std::unordered_map<char, char const*> race_names{{race_trait<Races>::value[0], race_trait<Races>::value}...};
+
+        auto format = [](std::string const& s) { return s[0] + ('=' + s);};
+
+        std::string buffer;
+        do {
+            auto iter = race_names.begin();
+            os << "Pick a race [" << format(iter->second);
+            std::accumulate(++iter, race_names.end(), std::ref(os),
+                            [&](std::ostream& os, std::pair<char, char const*> const& s) -> std::ostream& { return os << ", " << format(s.second) ; });
+            os << "] :";
+            std::getline(is, buffer);
+            trim(buffer);
+        } while(buffer.size() != 1 and race_names.find(buffer[0]) == race_names.end());
+
+        os << race_names.find(buffer[0])->second << " `" << name << "' joins the battle!" << std::endl;
+        return race_selector<Races...>(name, buffer[0]);
+    }
+
+What a tough one! There are a lot of things we have already seen: the
+``static_assert``, the lambdas, the variadic templates... But there are some
+new stuff too. First let's welcome ``std::unordered_map<Key, value>``, the
+C++11 hash table from ``<unordered_map>``. It got initialized through an
+initializer list that itself contains initializer list of pairs, and this list
+is automagically created through the variadic parameter expansion of the
+``race_trait``! Woah, that's some C++11 magic!
+
+Then we get a regular lambda function, but we're used to them now.
+
+The do-loops prompt is generated from the content of ``race_names``. Note that
+an iterator over an ``unordered_map`` yields an ``std::pair<Key, Value>``, and
+that we are carefully capturing the ouptut stream ``os`` in the lambda -- it's
+not copyable anyway. The careful programmer also noted the ``std::ref(...)``
+call, that forced ``std::accumulate`` to take a reference to ``os``, while it
+would have taken a copy (and fail miserably) otherwise.
+
+In the end we get a ``char`` that represents the chosen race, we know it's
+valid because it's in ``race_names``, but we must circle through each ``Races``
+to create our Warrior. That can be done using a recursive variadic template
+function (-::
+
+    template<class Race>
+    Warrior* race_selector(std::string const& name, char c) {
+        assert(c == race_trait<Race>::value[0] and "c was a valid race");
+        return new Race(name);
+    }
+
+    template<class Race, class ORace, class... Races>
+    Warrior* race_selector(std::string const& name, char c)
+    {
+        if(c == race_trait<Race>::value[0])
+            return new Race(name);
+        else
+            return race_selector<ORace, Races...>(name, c);
+    }
+
+This function recursively calls itself until it finds a ``Race`` with a
+``race_trait`` matching selection character ``c``. It basically does compile
+time recursion over the template argument ``Races`` until they are exhausted,
+and a runtime check to pick the right ``Warrior`` child class. The ``assert``
+from ``cassert`` is a bit old-school, it could have been a ``throw``.
+
+We can now update our ``main`` function with::
+
+   Warrior *me = pick_race(races, "me", std::cin, std::cout);
+
+And enjoy our favorite race before next level, where all opponents with rush at
+you at once!

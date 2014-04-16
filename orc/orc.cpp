@@ -3,6 +3,8 @@
 #include <random>
 #include <array>
 #include <memory>
+#include <unordered_map>
+#include <cassert>
 
 namespace {
     std::random_device rd;
@@ -153,6 +155,23 @@ class Orc : public Warrior {
     }
 };
 
+template<class T> struct race_trait;
+template<>
+struct race_trait<Knight> {
+    static constexpr char value[] = "knight";
+};
+constexpr char race_trait<Knight>::value[];
+template<>
+struct race_trait<Orc> {
+    static constexpr char value[] = "orc";
+};
+constexpr char race_trait<Orc>::value[];
+template<>
+struct race_trait<Elf> {
+    static constexpr char value[] = "elf";
+};
+constexpr char race_trait<Elf>::value[];
+
 void fight(Warrior& self, Warrior& other)
 {
     while(self and other) {
@@ -174,6 +193,45 @@ void fight(Warrior& self, Warrior& other)
 
 template <typename... Races>
 struct RaceSelector {};
+
+template<class Race>
+Warrior* race_selector(std::string const& name, char c) {
+    assert(c == race_trait<Race>::value[0] and "c was a valid race");
+    return new Race(name);
+}
+
+template<class Race, class ORace, class... Races>
+Warrior* race_selector(std::string const& name, char c)
+{
+    if(c == race_trait<Race>::value[0])
+        return new Race(name);
+    else
+        return race_selector<ORace, Races...>(name, c);
+}
+
+template < class... Races, template <class...> class RaceSelector>
+Warrior* pick_race(RaceSelector<Races...>, std::string const& name, std::istream& is, std::ostream& os)
+{
+    static_assert(sizeof...(Races)>=1, "at least one race");
+
+    static const std::unordered_map<char, char const*> race_names{{race_trait<Races>::value[0], race_trait<Races>::value}...};
+
+    auto format = [](std::string const& s) { return s[0] + ('=' + s);};
+
+    std::string buffer;
+    do {
+        auto iter = race_names.begin();
+        os << "Pick a race [" << format(iter->second);
+        std::accumulate(++iter, race_names.end(), std::ref(os),
+                        [&](std::ostream& os, std::pair<char, char const*> const& s) -> std::ostream& { return os << ", " << format(s.second) ; });
+        os << "]:";
+        std::getline(is, buffer);
+        trim(buffer);
+    } while(buffer.size() != 1 and race_names.find(buffer[0]) == race_names.end());
+
+    os << race_names.find(buffer[0])->second << " `" << name << "' joins the battle!" << std::endl;
+    return race_selector<Races...>(name, buffer[0]);
+}
 
 template < class... Races, template <class...> class RaceSelector,
            class... Args>
@@ -208,7 +266,7 @@ int main(int argc, char * argv[]) {
     Warrior* other = pick_random_race(races);
 
 
-    Warrior *me = pick_random_race(races, "me");
+    Warrior *me = pick_race(races, "me", std::cin, std::cout);
     me->buf(StatChooser<8>(std::cin, std::cout));
 
     for(size_t round = 1; *me; ++round)
