@@ -182,7 +182,7 @@ hierarchy. A ``Knight`` is just a ``Warrior`` with an HP boost::
         Knight(std::string const& name) : Warrior(name, START_HP + 10)
         {
         }
-        virtual ~Knight() {}
+        virtual ~Knight() override {}
     };
 
 An elf is much less tough, but it can chain several attacks in a row::
@@ -193,9 +193,9 @@ An elf is much less tough, but it can chain several attacks in a row::
         Elf(std::string const& name) : Warrior(name, START_HP - 5)
         {
         }
-        virtual ~Elf() {}
+        virtual ~Elf() override {}
 
-        void attack(Warrior& other) const {
+        void attack(Warrior& other) const override {
             Warrior::attack(other);
             if(flip(coin))
                 attack(other);
@@ -209,16 +209,17 @@ And an ``Orc`` is a real warrior with a single-or double slash::
         Orc(std::string const& name) : Warrior(name)
         {
         }
-        virtual ~Orc() {}
+        virtual ~Orc() override {}
 
-        void attack(Warrior& other) const {
+        void attack(Warrior& other) const override {
             Warrior::attack(other);
             if(flip(coin))
                 Warrior::attack(other);
         }
     };
 
-Do not forget to make ``attack`` virtual in the base class, and to a virtual destructor!
+If you forget to make ``attack`` or the destructor virtual, the ``override``
+qualifier will make the compiler grunt! Thank you C++11!
 
 The name of the warrior somehow lacks the flavor brought by *Aegnor* the elf or
 *Gorbag* the orc. Let's implement a default constructor for each race that
@@ -241,7 +242,7 @@ The ``vector`` is initialized through an ``initializer_list``, a pretty neat new
 Now that we have a more cosmopolitan world with a lot of funky names, instead
 of a ``Warrior``, the player can get a random race::
 
-    Warrior* pick_random_race(std::string const& name) {
+    Warrior* pick_random_race(std::string const& name) [[yeah]] {
         std::array<Warrior *, 3> challengers{{ new Knight(name),
                                               new Elf(name),
                                               new Orc(name)
@@ -255,6 +256,10 @@ of a ``Warrior``, the player can get a random race::
 That's not very efficient, but it works. Note that ``array`` and initialization
 lists are used once again, and that we are also using a lambda function! More
 on this later though.
+
+Also note the ``[[yeah]]`` attribute, which uses the new attribute mechanism.
+Here the attribute is not recognized by the compiler and would result in a
+warning.
 
 In the ``main``, we can now write::
 
