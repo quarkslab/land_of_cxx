@@ -6,8 +6,10 @@
 #include <unordered_map>
 #include <cassert>
 #include <thread>
-#include <sstream>
 #include <atomic>
+#include <mutex>
+
+std::mutex cout_mutex;
 
 namespace {
     std::random_device rd;
@@ -78,7 +80,7 @@ class Warrior {
 
         virtual void attack(Warrior& other) const {
             static_assert(START_STR>0, "not dividing by zero");
-            other._hp = std::max(0L, other._hp - long((_str + START_STR - 1) / START_STR));
+            other._hp -= long((_str + START_STR - 1) / START_STR);
         }
         virtual void regen() {
             auto recovery_rate = _max_hp / 10;
@@ -94,7 +96,7 @@ class Warrior {
         size_t agi() const { return _agi; }
 
         explicit operator bool() const {
-            return _hp;
+            return _hp > 0;
         }
 
         template<size_t N>
@@ -185,9 +187,10 @@ void start_fight(Warrior& self,  Warrior& other) {
             std::this_thread::sleep_for(charging_duration);
             auto hp = other.hp();
             self.attack(other);
-            std::ostringstream msg;
-            msg << self.name() << " deals " << hp - other.hp() << " damages" << std::endl;
-            std::cout << msg.str();
+            {
+                std::lock_guard<std::mutex> lock(cout_mutex);
+                std::cout << self.name() << " deals " << hp - other.hp() << " damages" << std::endl;
+            }
         }
     }
 }

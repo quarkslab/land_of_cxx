@@ -726,9 +726,7 @@ The ``start_fight`` function handles the lifetime of a thread::
                     std::this_thread::sleep_for(charging_duration);
                     auto hp = other.hp();
                     self.attack(other);
-                    std::ostringstream msg;
-                    msg << self.name() << " deals " << hp - other.hp() << " damages" << std::endl;
-                    std::cout << msg.str();
+                    std::cout << self.name() << " deals " << hp - other.hp() << " damages" << std::endl;
                 }
          }
 
@@ -736,9 +734,22 @@ We are doing a lot of new stuff here. First we use the
 ``std::chrono::duration`` class from the ``<chrono>`` header to hold a duration
 that will be passed to the ``std::this_thread::sleep_for`` function. The
 ``std::this_thread`` namespace handles function that only affect current
-thread. We are also using a temporary ``std::ostringstream`` from ``<sstream>``
-to bufferize a line before printing it out, otherwise stream from the two
-threads would be tangled.
+thread.
+
+If we run the game in that state, the output stream will receive words from
+different threads and that will not look pretty. To prevent this, we can add a
+mutex to protect our global output stream. C++11 provides a large choice of
+mutex in the ``<mutex>`` header, let's use the basic one, declared globally::
+
+    #include <mutex>
+    std::mutex cout_mutex;
+
+And at call site, we create a scoped lock::
+
+    {
+        std::lock_guard<std::mutex> lock(cout_mutex);
+        std::cout << self.name() << " deals " << hp - other.hp() << " damages" << std::endl;
+    }
 
 To prevent a dead warrior to keep on striking, we are using a guard ``if(self
 and other)``. This is far from perfect because one can be killed during the
@@ -751,7 +762,14 @@ to make it an::
 
 using the declarations from ``<atomic>``; this basically means that we will not
 loose a single operation on ``_hp`` as each increase or decrease is performed
-atomically.
+atomically. We also have to change the implementation of the ``bool`` operator
+and ``attack`` to work with atomic operations::
+
+    other._hp -= long((_str + START_STR - 1) / START_STR);
+
+that allows HP to be less then zero, which doesn't matter because::
+
+    return _hp > 0;
 
 Note that to compile this example, we have added the ``-pthread`` flag to our compiler!
 
