@@ -322,3 +322,85 @@ The ``races`` variable is only used for template argument type inference. Thats
 why it is bound to no formal arguments in ``pick_random_race``.
 
 Woah, that was a tough level! Lets try something a bit less mind-breaking ;-)
+
+Level 5
+-------
+
+The game engine of ORC is still a bit rudimentary... In real games heroes have
+more stats than just HP. Let's add the *STR* and *AGI* stats to pump our
+warrior a bit! To do so, we will extend the ``Warrior`` class with a few more
+member variables, accessors and also extend its constructor::
+
+    size_t _str;
+    size_t _agi;
+
+    Warrior(std::string const& name, size_t hp = START_HP, size_t str = START_STR, size_t agi= START_AGI) :
+        _name(name),
+        _hp(hp),
+        _str(str),
+        _agi(agi)
+    {
+    }
+
+    size_t hp() const { return _hp; }
+    size_t str() const { return _str; }
+    size_t agi() const { return _agi; }
+
+We introduced a few more top-level constants::
+
+    size_t constexpr START_AGI = 5;
+    size_t constexpr START_STR = 5;
+
+AGIlity is used to compute who strikes first, and hon many time you strike::
+
+    void fight(Warrior& self, Warrior& other)
+    {
+        while(self and other) {
+            Warrior *first = &self, *second = &other;
+            if(other.agi() > self.agi())
+                std::swap(first, second);
+            else if(other.agi() == self.agi() and flip(coin))
+                std::swap(first, second);
+            auto strikes = 1 + (first->agi() - second->agi()) / START_AGI ;
+            std::cout << first->name() << " strikes " << strikes << " times" << std::endl;
+            while(strikes--)
+                first->attack(*second);
+            if(*second)
+                second->attack(*first);
+            std::cout << "after this round, you have:" << self.hp() << " HP left and " << other.name() << " has:" << other.hp() << " HP left" << std::endl;
+        }
+    }
+
+Some simple logging has been added to make the fight more entertaining. Also
+notice that we did not specify the type of the ``strikes`` variable. Instead we
+used the ``auto`` keyword that gets a new meaning in C++11: it performs local
+type inference!
+
+STRenght is used to compute the amount of damage dealt per blow::
+
+    virtual void attack(Warrior& other) const {
+        static_assert(START_STR>0, "not dividing by zero");
+        other._hp = std::max(0, other._hp - long(_str + START_STR - 1) / START_STR);
+    }
+
+Notice this ``static_assert``? It verifies some properties on a compile-time
+constant, just has an ``assert`` would for runtime expressions.
+
+By the way, the game looks better with more asciiart, as in::
+
+    std::cout << R"(
+                     /\
+                    /  |
+      *            /  /________________________________________________
+     (O)77777777777)  7                                                `~~--__
+    8OO>>>>>>>>>>>>] <===========================================>          __-
+     (O)LLLLLLLLLLL)  L________________________________________________.--~~
+      *            \  \
+                    \  |
+                     \/
+    )";
+
+Near the end of the main. Thanks to
+http://www.retrojunkie.com/asciiart/weapons/swords.htm for the nice arts!
+
+And after this rest, see you next level!

@@ -10,6 +10,9 @@ namespace {
 }
 
 long constexpr START_HP = 20;
+size_t constexpr START_AGI = 5;
+size_t constexpr START_STR = 5;
+
 const std::array<std::string, 3> elvish_names{{"Aegnor", "Beleg", "Curufin"}};
 const std::array<std::string, 3> orcish_names{{"Azog", "Bolg", "Grishnakh"}};
 const std::array<std::string, 3> human_names {{"Anarion", "Vorondil", "Mardil"}};
@@ -17,12 +20,16 @@ const std::array<std::string, 3> human_names {{"Anarion", "Vorondil", "Mardil"}}
 class Warrior {
     std::string const _name;
     long _hp;
+    size_t _str;
+    size_t _agi;
 
     public:
 
-        Warrior(std::string const& name, long hp=START_HP):
+        Warrior(std::string const& name, long hp=START_HP, size_t str = START_HP, size_t agi = START_AGI):
             _name(name),
-            _hp(hp)
+            _hp(hp),
+            _str(str),
+            _agi(agi)
         {
         }
 
@@ -31,12 +38,16 @@ class Warrior {
         Warrior(Warrior const&) = delete;
 
         virtual void attack(Warrior& other) const {
-            other._hp = std::max(0L, other._hp - 1);
+            static_assert(START_STR>0, "not dividing by zero");
+            other._hp = std::max(0L, other._hp - long((_str + START_STR - 1) / START_STR));
         }
 
         std::string const& name() const {
             return _name;
         }
+        size_t hp() const { return _hp; }
+        size_t str() const { return _str; }
+        size_t agi() const { return _agi; }
 
         explicit operator bool() const {
             return _hp;
@@ -91,14 +102,21 @@ class Orc : public Warrior {
     }
 };
 
-void fight(Warrior& self, Warrior& other) {
+void fight(Warrior& self, Warrior& other)
+{
     while(self and other) {
-        Warrior *first= &self, *second = &other;
-        if(flip(coin))
+        Warrior *first = &self, *second = &other;
+        if(other.agi() > self.agi())
             std::swap(first, second);
-        first->attack(*second);
+        else if(other.agi() == self.agi() and flip(coin))
+            std::swap(first, second);
+        auto strikes = 1 + (first->agi() - second->agi()) / START_AGI ;
+        std::cout << first->name() << " strikes " << strikes << " times" << std::endl;
+        while(strikes--)
+            first->attack(*second);
         if(*second)
             second->attack(*first);
+        std::cout << "after this round, you have:" << self.hp() << " HP left and " << other.name() << " has:" << other.hp() << " HP left" << std::endl;
     }
 }
 
@@ -142,6 +160,17 @@ int main(int argc, char * argv[]) {
     fight(*me, *other);
 
     Warrior* winner = *me ? me : other;
+    std::cout << R"(
+                 /\
+                /  |
+  *            /  /________________________________________________
+ (O)77777777777)  7                                                `~~--__
+8OO>>>>>>>>>>>>] <===========================================>          __-
+ (O)LLLLLLLLLLL)  L________________________________________________.--~~
+  *            \  \
+                \  |
+                 \/
+)";
     std::cout << R"(The winner is \o/ )" << winner->name() << R"( \o/)" << std::endl;
 
     delete me;
