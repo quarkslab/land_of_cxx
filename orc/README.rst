@@ -684,3 +684,75 @@ We can now update our ``main`` function with::
 
 And enjoy our favorite race before next level, where all opponents with rush at
 you at once!
+
+
+Level 9
+-------
+
+You may have noticed that the fight engine has one major flaw: once you have
+enough AGI, it is possible to strike your foe to death without giving him a
+chance to retaliate. To make the fight more realistic, we will use threads (yes,
+threads are in the C++11 standard, hurray) to represent each fighter.
+
+Thread support is described in the ``<thread>`` header. To start a thread,
+simply call it as::
+
+    std::thread my_thread(my_function, arg0, arg1);
+
+where ``my_function`` is the function run by the thread, with two arguments
+``arg0`` and ``arg1``. So we'll update the ``fight`` function like this::
+
+    void fight(Warrior& self, Warrior& other)
+    {
+       std::thread foe(start_fight, std::ref(other), std::ref(self));
+       start_fight(std::ref(self), std::ref(other));
+       foe.join();
+    }
+
+Once again we make use of ``std::ref`` so that template type inference picks a
+reference and prevents the (impossible) copy. We also use the ``join`` method
+from a thread to basically tell we're waiting for this thread to terminate
+before going any further.
+
+The ``start_fight`` function handles the lifetime of a thread::
+
+    void start_fight(Warrior& self,  Warrior& other) {
+        auto constexpr round_duration = 1;
+        size_t const nb_strikes = (self.agi() + START_AGI - 1) / START_AGI;
+        std::chrono::duration<double, std::ratio<1>> charging_duration{double(round_duration)/ nb_strikes};
+        while(self and other) {
+            for(size_t i = 0; i < nb_strikes; ++i)
+                if(self and other) {
+                    std::this_thread::sleep_for(charging_duration);
+                    auto hp = other.hp();
+                    self.attack(other);
+                    std::ostringstream msg;
+                    msg << self.name() << " deals " << hp - other.hp() << " damages" << std::endl;
+                    std::cout << msg.str();
+                }
+         }
+
+We are doing a lot of new stuff here. First we use the
+``std::chrono::duration`` class from the ``<chrono>`` header to hold a duration
+that will be passed to the ``std::this_thread::sleep_for`` function. The
+``std::this_thread`` namespace handles function that only affect current
+thread. We are also using a temporary ``std::ostringstream`` from ``<sstream>``
+to bufferize a line before printing it out, otherwise stream from the two
+threads would be tangled.
+
+To prevent a dead warrior to keep on striking, we are using a guard ``if(self
+and other)``. This is far from perfect because one can be killed during the
+attack charge, but that's not a real trouble. A bigger trouble is that
+concurrent we have nothing to protect the ``_hp`` decrease from multiple
+thread. In our simple case, a convenient way to prevent races around ``_hp`` is
+to make it an::
+
+    std::atomic<long> _hp;
+
+using the declarations from ``<atomic>``; this basically means that we will not
+loose a single operation on ``_hp`` as each increase or decrease is performed
+atomically.
+
+Note that to compile this example, we have added the ``-pthread`` flag to our compiler!
+
+Good Luck and Have Fun playing ORC!

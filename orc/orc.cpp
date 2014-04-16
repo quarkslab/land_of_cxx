@@ -5,6 +5,9 @@
 #include <memory>
 #include <unordered_map>
 #include <cassert>
+#include <thread>
+#include <sstream>
+#include <atomic>
 
 namespace {
     std::random_device rd;
@@ -54,7 +57,7 @@ class StatChooser : public std::array<char, N> {
 class Warrior {
     std::string const _name;
     long _max_hp;
-    long _hp;
+    std::atomic<long> _hp;
     size_t _str;
     size_t _agi;
 
@@ -172,22 +175,28 @@ struct race_trait<Elf> {
 };
 constexpr char race_trait<Elf>::value[];
 
+void start_fight(Warrior& self,  Warrior& other) {
+    auto constexpr round_duration = 1;
+    size_t const nb_strikes = (self.agi() + START_AGI - 1) / START_AGI;
+    std::chrono::duration<double, std::ratio<1>> charging_duration{double(round_duration)/ nb_strikes};
+    while(self and other) {
+    for(size_t i = 0; i < nb_strikes; ++i)
+        if(self and other) {
+            std::this_thread::sleep_for(charging_duration);
+            auto hp = other.hp();
+            self.attack(other);
+            std::ostringstream msg;
+            msg << self.name() << " deals " << hp - other.hp() << " damages" << std::endl;
+            std::cout << msg.str();
+        }
+    }
+}
+
 void fight(Warrior& self, Warrior& other)
 {
-    while(self and other) {
-        Warrior *first = &self, *second = &other;
-        if(other.agi() > self.agi())
-            std::swap(first, second);
-        else if(other.agi() == self.agi() and flip(coin))
-            std::swap(first, second);
-        auto strikes = 1 + (first->agi() - second->agi()) / START_AGI ;
-        std::cout << first->name() << " strikes " << strikes << " times" << std::endl;
-        while(strikes--)
-            first->attack(*second);
-        if(*second)
-            second->attack(*first);
-        std::cout << "after this round, you have:" << self.hp() << " HP left and " << other.name() << " has:" << other.hp() << " HP left" << std::endl;
-    }
+    std::thread foe(start_fight, std::ref(other), std::ref(self));
+    start_fight(std::ref(self), std::ref(other));
+    foe.join();
 }
 
 
