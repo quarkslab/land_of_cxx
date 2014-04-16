@@ -121,7 +121,7 @@ class Knight : public Warrior {
     Knight() : Knight(human_names[std::uniform_int_distribution<>{0, human_names.size() - 1}(coin)])
     {
     }
-    virtual ~Knight() {}
+    virtual ~Knight() override {}
 };
 
 class Elf : public Warrior {
@@ -133,9 +133,9 @@ class Elf : public Warrior {
     Elf() : Elf(elvish_names[std::uniform_int_distribution<>{0, elvish_names.size() - 1}(coin)])
     {
     }
-    virtual ~Elf() {}
+    virtual ~Elf() override {}
 
-    void attack(Warrior& other) const {
+    void attack(Warrior& other) const override  {
         Warrior::attack(other);
         if(flip(coin))
             attack(other);
@@ -151,9 +151,9 @@ class Orc : public Warrior {
     {
     }
 
-    virtual ~Orc() {}
+    virtual ~Orc() override {}
 
-    void attack(Warrior& other) const {
+    void attack(Warrior& other) const override {
         Warrior::attack(other);
         if(flip(coin))
             Warrior::attack(other);
