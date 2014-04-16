@@ -507,3 +507,82 @@ availability of the ``begin()`` and ``end()`` method.
 
 Update your main with the ``StatChooser``, and watch your buffed warrior win
 all his fights... Until next level!
+
+Level 7
+-------
+
+Now that your warrior can boost his stat, it's time to meet stronger opponents!
+Each time you win a duel, you get some stat boost, you partially regen your HP
+and a new challenger comes. After a few round, you'll have to fight several
+foes in a row and so on... First step is to update the ``main`` function::
+
+    Warrior *me = pick_random_race(races, "me");
+    me->buf(StatChooser<8>(std::cin, std::cout));
+
+    for(size_t round = 1; *me; ++round)
+    {
+        std::vector<Warrior*> foes{(round  + 9) / 10, nullptr};
+        std::generate(foes.begin(), foes.end(), [&races]() { return pick_random_race(races); });
+        std::cout << "***** round " << round << " *****" << std::endl;
+        for(auto foe: foes) {
+            std::cout << ">>> " << me->name() << " VS " << foe->name() << "<<<" << std::endl;
+            fight(*me, *foe);
+            Warrior* winner = *me ? me : other;
+            std::cout << "The winner is ``" << winner->name() << "''" << std::endl;
+        }
+        if(*me) {
+            std::cout << "You survived one more round! It's time to harvest the fruits of your efforts" << std::endl
+                      << "status: HP=" << me->hp() << '/' << me->max_hp() << " STR=" << me->str() << " AGI=" << me->agi() <<std::endl;
+            me->buf(StatChooser<1>{std::cin, std::cout});
+            me->regen();
+        }
+    }
+
+We are using quite a few C++11 features here. First, notice the ``nullptr``
+identifier is an elegant replacement to ``NULL`` or ``0``. Then the lambda used
+for the generator uses a capture list with a capturing mode specifier. The
+``=`` means we are capturing the ``races`` variable by reference. We could have
+omitted the ``&`` to capture the variable by copy, or even remove the variable
+name to say we are capturing any variable by reference. A *ranged-based for
+loop* is used with the ``auto`` qualifier. There is no extra qualifier around
+the ``auto`` so we get a copy (of a ``Warrior`` pointer).
+
+Using your eagle-eye powers, you may have noticed that we have started leaking
+memory, as the memory allocated by ``pick_random_race`` is never freed. To make
+memory management, C++11 provides several wrappers in the ``<memory>`` header.
+Let's use some ``std::shared_ptr<T>``::
+
+    std::vector<std::shared_ptr<Warrior>> foes{(round + 9) / 10, nullptr};
+    std::generate(foes.begin(), foes.end(),
+                  [&races]() { return std::shared_ptr<Warrior>(pick_random_race(races)); });
+
+Creates a bunch of shared pointer pointing on nothing, then our lambda function
+will set a proper value to the shared pointer, which will be automatically
+freed when all references to that pointer are lost. That will certainly happens
+at the end of the outermost loop body, when the holding vector will be deleted.
+
+To help our warrior to survive several battles, we allow him to have a rest
+between each round, using the ``Warrior::regen()`` method. This method is
+defined as::
+
+    virtual void regen() {
+        auto recovery_rate = _max_hp / 10;
+        _hp = std::min(_max_hp, _hp + recovery_rate * 2);
+    }
+
+with ``_max_hp`` properly initialized upon construction::
+
+    long _max_hp;
+    long _hp;
+
+    Warrior(std::string const& name, size_t hp = START_HP, size_t str = START_STR, size_t agi= START_AGI) :
+        _name(name),
+        _max_hp(hp),
+        _hp(hp),
+
+And updated when we ``buf`` the warrior::
+
+    case Stat::HP: _hp+=2; _max_hp += 2 ; break;
+
+The game looks pretty decent now, you can start to play and see how many rounds
+you can survive before going to next level.

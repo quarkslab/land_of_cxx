@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <random>
 #include <array>
+#include <memory>
 
 namespace {
     std::random_device rd;
@@ -50,6 +51,7 @@ class StatChooser : public std::array<char, N> {
 
 class Warrior {
     std::string const _name;
+    long _max_hp;
     long _hp;
     size_t _str;
     size_t _agi;
@@ -58,6 +60,7 @@ class Warrior {
 
         Warrior(std::string const& name, long hp=START_HP, size_t str = START_STR, size_t agi = START_AGI):
             _name(name),
+            _max_hp(hp),
             _hp(hp),
             _str(str),
             _agi(agi)
@@ -72,10 +75,15 @@ class Warrior {
             static_assert(START_STR>0, "not dividing by zero");
             other._hp = std::max(0L, other._hp - long((_str + START_STR - 1) / START_STR));
         }
+        virtual void regen() {
+            auto recovery_rate = _max_hp / 10;
+            _hp = std::min(_max_hp, _hp + recovery_rate * 2);
+        }
 
         std::string const& name() const {
             return _name;
         }
+        size_t max_hp() const { return _max_hp; }
         size_t hp() const { return _hp; }
         size_t str() const { return _str; }
         size_t agi() const { return _agi; }
@@ -89,7 +97,7 @@ class Warrior {
             for(auto const& c: sc)
             {
                 switch(c) {
-                    case Stat::HP: _hp+=2; break;
+                    case Stat::HP: _hp+=2; _max_hp += 2 ; break;
                     case Stat::STR: _str+=1; break;
                     case Stat::AGI: _agi+=1; break;
                 }
@@ -197,12 +205,31 @@ int main(int argc, char * argv[]) {
     std::cout << banner << std::endl;
 
     RaceSelector<Orc, Elf, Knight> races;
-    Warrior*me = pick_random_race(races, "me"),
-           *other = pick_random_race(races);
+    Warrior* other = pick_random_race(races);
 
+
+    Warrior *me = pick_random_race(races, "me");
     me->buf(StatChooser<8>(std::cin, std::cout));
 
-    fight(*me, *other);
+    for(size_t round = 1; *me; ++round)
+    {
+        std::vector<std::shared_ptr<Warrior>> foes{(round  + 9) / 10, nullptr};
+        std::generate(foes.begin(), foes.end(),
+                      [&races]() { return std::shared_ptr<Warrior>(pick_random_race(races)); });
+        std::cout << "***** round " << round << " *****" << std::endl;
+        for(auto foe: foes) {
+            std::cout << ">>> " << me->name() << " VS " << foe->name() << "<<<" << std::endl;
+            fight(*me, *foe);
+            Warrior* winner = *me ? me : other;
+            std::cout << "The winner is ``" << winner->name() << "''" << std::endl;
+        }
+        if(*me) {
+            std::cout << "You survived one more round! It's time to harvest the fruits of your efforts" << std::endl
+                      << "status: HP=" << me->hp() << '/' << me->max_hp() << " STR=" << me->str() << " AGI=" << me->agi() <<std::endl;
+            me->buf(StatChooser<1>{std::cin, std::cout});
+            me->regen();
+        }
+    }
 
     Warrior* winner = *me ? me : other;
     std::cout << R"(
@@ -215,11 +242,11 @@ int main(int argc, char * argv[]) {
   *            \  \
                 \  |
                  \/
+
 )";
-    std::cout << R"(The winner is \o/ )" << winner->name() << R"( \o/)" << std::endl;
+    std::cout << R"(,'`~.~^~._ you were killed by )" << winner->name() << R"( _.~^~`',)" << std::endl;
 
     delete me;
-    delete other;
 
     return 0;
 }
