@@ -265,3 +265,60 @@ Don't forget to add the ``delete`` calls in the end ;-)
 
 Have you noticed how difficult it would be to use ``pick_random_race`` with the
 default constructors? More on this on next level!
+
+Level 4
+-------
+
+We left previous level in a dangerous state: we were just about to replicate
+the code of ``pick_random_race`` to allow multiple constructor signature.
+Fortunately C++11 introduces *variadic templates* to elegantly solve the issue.
+The Syntax is the following::
+
+    template<class... Args>
+    Warrior* pick_random_race(Args const&... args) {
+        std::array<Warrior *, 3> challengers{{new Knight(args...),
+                                              new Elf(args...),
+                                              new Orc(args...)
+                                             }};
+        std::random_shuffle(challengers.begin(), challengers.end());
+        std::for_each(challengers.begin() + 1, challengers.end(),
+                      [](Warrior * warrior) { delete warrior; });
+        return challengers[0];
+    }
+
+It's not as generic as it could be but the rough idea is there. Called with no
+argument, this function will call the default constructor, called with one
+argument, it will forward it to the other constructor. The new call site is::
+
+    Warrior*me = pick_random_race("me"),
+           *other = pick_random_race();
+
+But wait. Some stuff are still hard coded in our function: the race choice.
+Let's use template parameters for templates (-::
+
+    template <typename... Races>
+    struct RaceSelector {};
+
+    template < class... Races, template <class...> class RaceSelector,
+               class... Args>
+    Warrior* pick_random_race(RaceSelector<Races...>, Args const&... args)
+    {
+        std::array<Warrior *, sizeof...(Races)> challengers{{new Races(args...)...}};
+        std::random_shuffle(challengers.begin(), challengers.end());
+        std::for_each(challengers.begin() + 1, challengers.end(),
+                      [](Warrior * warrior) { delete warrior; });
+        return challengers[0];
+    }
+
+The idea is to fill ``RaceSelector`` with several types that will populate the
+``Races`` variadic template, while ``Args`` is still used for argument types.
+At call site we can pick the races we want to play with at a single point::
+
+    RaceSelector<Orc, Elf, Knight> races;
+    Warrior*me = pick_random_race(races, "me"),
+           *other = pick_random_race(races);
+
+The ``races`` variable is only used for template argument type inference. Thats
+why it is bound to no formal arguments in ``pick_random_race``.
+
+Woah, that was a tough level! Lets try something a bit less mind-breaking ;-)

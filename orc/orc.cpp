@@ -102,11 +102,15 @@ void fight(Warrior& self, Warrior& other) {
     }
 }
 
-Warrior* pick_random_race(std::string const& name) {
-    std::array<Warrior *, 3> challengers{{ new Knight(name),
-                                          new Elf(name),
-                                          new Orc(name)
-                                       }};
+
+template <typename... Races>
+struct RaceSelector {};
+
+template < class... Races, template <class...> class RaceSelector,
+           class... Args>
+Warrior* pick_random_race(RaceSelector<Races...>, Args const&... args)
+{
+    std::array<Warrior *, sizeof...(Races)> challengers{{new Races(args...)...}};
     std::random_shuffle(challengers.begin(), challengers.end());
     std::for_each(challengers.begin() + 1, challengers.end(),
                   [](Warrior * warrior) { delete warrior; });
@@ -131,8 +135,9 @@ static const char banner [] = R"(
 int main(int argc, char * argv[]) {
     std::cout << banner << std::endl;
 
-    Warrior*me = pick_random_race("me"),
-           *other = new Orc();
+    RaceSelector<Orc, Elf, Knight> races;
+    Warrior*me = pick_random_race(races, "me"),
+           *other = pick_random_race(races);
 
     fight(*me, *other);
 
