@@ -404,3 +404,106 @@ Near the end of the main. Thanks to
 http://www.retrojunkie.com/asciiart/weapons/swords.htm for the nice arts!
 
 And after this rest, see you next level!
+
+Level 6
+-------
+
+Currently, the player of ORC never makes a choice, and that's not the
+definition of a game. Let's had some leveling to the game! The idea is to pump
+the stats of your warrior and have him defeat multiple foes. The more foes you
+defeat, the stronger you get... That's how addictive games work ;-)
+
+First step is to make it possible to choose which stat to pump. To do so we
+introduce an enumeration::
+
+    enum Stat : char {
+        HP = 'h',
+        STR = 's',
+        AGI = 'a'
+    };
+
+That's kinda strange to have an enumeration inherit from a native type, but
+that's a new feature of C++11, that lets you force the underlying type used to
+represent the enumeration.
+
+Now we want to prompt the user for several stats he/she wants to pump, using a
+``char`` as stat code::
+
+    template<size_t N>
+    class StatChooser : public std::array<char, N> {
+        public:
+        StatChooser(std::istream& is, std::ostream& os) {
+            std::string buffer;
+            do {
+                os << "Select <" << N << "> stats buf [sha]:";
+                buffer.empty();
+                std::getline(is, buffer);
+                trim(buffer);
+            }
+            while(buffer.length() != N and buffer.find_first_not_of("sha") == std::string::npos);
+            std::copy(buffer.begin(), buffer.end(), this->begin());
+        }
+    };
+
+That's not the most generic piece of code, but there are several things to note
+about it. First it uses an integral template parameter ``N``. Second it
+inherits from ``std::array<char, N>``, which automatically grants him
+``begin()`` and ``end()`` members. Then it uses the ``trim`` function that
+operates in-place and removes spaces::
+
+    std::string& trim(std::string & s) {
+        auto isnotspace =  [](std::string::const_reference c) -> bool { return not std::isspace(c); };
+        std::string::iterator first_non_space = std::find_if(s.begin(), s.end(), isnotspace);
+        std::string::reverse_iterator last_non_space = std::find_if(s.rbegin(), s.rend(), isnotspace);
+        s.erase(last_non_space.base(), s.end());
+        s.erase(s.begin(), first_non_space);
+        return s;
+    }
+
+This functions uses C++11 lambda function. A lambda function has four parts:
+
+- a capture list in ``[]`` to capture variable from the environment;
+
+- an argument list that resembles a classical argument list;
+
+- an optional return type specification in the form ``-> type``. Local type
+  inference usually does it for you
+
+- a statement ``{ expr; }``
+
+We used the ``auto`` keyword to avoid specifying the function type, but C++11
+introduces a parametric type to store function-like objects::
+
+    std::function<bool(std::string::const_reference)> isnotspace =  [](std::string::const_reference c) { return not std::isspace(c); };
+
+To use our ``StatChooser``, we need an extra method in the ``Warrior`` class::
+
+    template<size_t N>
+    void buf(StatChooser<N> && sc) {
+        for(auto const& c: sc)
+        {
+            switch(c) {
+                case Stat::HP: _hp+=2; break;
+                case Stat::STR: _str+=1; break;
+                case Stat::AGI: _agi+=1; break;
+            }
+        }
+    }
+
+the ``buf`` method has nothing unusual, except the ``&&`` in the argument list.
+It means ``StatChooser<N>`` is an r-value, a temporary object. Basically, you
+are not allowed to write this in your ``main`` function call::
+
+    StatChooser<8> sc(std::cin, std::cout);
+    me->buf(sc);
+
+you have to write::
+
+    me->buf(StatChooser<8>(std::cin, std::cout));
+
+It also uses a *range-based for loop*, that automates the ``for(auto iter =
+v.begin(), end = v.end(); iter != end; ++iter)`` idiom, based on the
+availability of the ``begin()`` and ``end()`` method.
+
+Update your main with the ``StatChooser``, and watch your buffed warrior win
+all his fights... Until next level!

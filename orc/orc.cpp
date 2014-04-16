@@ -13,9 +13,40 @@ long constexpr START_HP = 20;
 size_t constexpr START_AGI = 5;
 size_t constexpr START_STR = 5;
 
+enum Stat : char {
+    HP = 'h',
+    STR = 's',
+    AGI = 'a'
+};
+
 const std::array<std::string, 3> elvish_names{{"Aegnor", "Beleg", "Curufin"}};
 const std::array<std::string, 3> orcish_names{{"Azog", "Bolg", "Grishnakh"}};
 const std::array<std::string, 3> human_names {{"Anarion", "Vorondil", "Mardil"}};
+
+std::string& trim(std::string & s) {
+    auto isnotspace =  [](std::string::const_reference c) -> bool { return not std::isspace(c); };
+    std::string::iterator first_non_space = std::find_if(s.begin(), s.end(), isnotspace);
+    std::string::reverse_iterator last_non_space = std::find_if(s.rbegin(), s.rend(), isnotspace);
+    s.erase(last_non_space.base(), s.end());
+    s.erase(s.begin(), first_non_space);
+    return s;
+}
+
+template<size_t N>
+class StatChooser : public std::array<char, N> {
+    public:
+    StatChooser(std::istream& is, std::ostream& os) {
+        std::string buffer;
+        do {
+            os << "Select <" << N << "> stats buf [sha]:";
+            buffer.empty();
+            std::getline(is, buffer);
+            trim(buffer);
+        }
+        while(buffer.length() != N and buffer.find_first_not_of("sha") == std::string::npos);
+        std::copy(buffer.begin(), buffer.end(), this->begin());
+    }
+};
 
 class Warrior {
     std::string const _name;
@@ -25,7 +56,7 @@ class Warrior {
 
     public:
 
-        Warrior(std::string const& name, long hp=START_HP, size_t str = START_HP, size_t agi = START_AGI):
+        Warrior(std::string const& name, long hp=START_HP, size_t str = START_STR, size_t agi = START_AGI):
             _name(name),
             _hp(hp),
             _str(str),
@@ -51,6 +82,18 @@ class Warrior {
 
         explicit operator bool() const {
             return _hp;
+        }
+
+        template<size_t N>
+        void buf(StatChooser<N> && sc) {
+            for(auto const& c: sc)
+            {
+                switch(c) {
+                    case Stat::HP: _hp+=2; break;
+                    case Stat::STR: _str+=1; break;
+                    case Stat::AGI: _agi+=1; break;
+                }
+            }
         }
 };
 
@@ -156,6 +199,8 @@ int main(int argc, char * argv[]) {
     RaceSelector<Orc, Elf, Knight> races;
     Warrior*me = pick_random_race(races, "me"),
            *other = pick_random_race(races);
+
+    me->buf(StatChooser<8>(std::cin, std::cout));
 
     fight(*me, *other);
 
