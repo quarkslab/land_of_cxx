@@ -155,7 +155,7 @@ Let's use this randomness to choose which warrior attacks and which one retaliat
         while(self and other) {
             Warrior *first= &self, *second = &other;
             if(flip(coin))
-                std::swap(first, *second);
+                std::swap(first, second);
             first->attack(second);
             if(*second)
                 second->attack(*first);
