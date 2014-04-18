@@ -523,9 +523,9 @@ Level 7
 -------
 
 Now that your warrior can boost his stat, it's time to meet stronger opponents!
-Each time you win a duel, you get some stat boost, you partially regen your HP
+Each time you win a duel, you get some stat boost, you partially recover your HP
 and a new challenger comes. After a few round, you'll have to fight several
-foes in a row and so on... First step is to update the ``main`` function::
+foes in a row and so until you die... First step is to update the ``main`` function::
 
     Warrior *me = pick_random_race(races, "me");
     me->buf(StatChooser<8>(std::cin, std::cout));
@@ -545,18 +545,21 @@ foes in a row and so on... First step is to update the ``main`` function::
             std::cout << "You survived one more round! It's time to harvest the fruits of your efforts" << std::endl
                       << "status: HP=" << me->hp() << '/' << me->max_hp() << " STR=" << me->str() << " AGI=" << me->agi() <<std::endl;
             me->buf(StatChooser<1>{std::cin, std::cout});
-            me->regen();
+            me->recover();
         }
     }
 
 We are using quite a few C++11 features here. First, notice the ``nullptr``
-identifier is an elegant replacement to ``NULL`` or ``0``. Then the lambda used
-for the generator uses a capture list with a capturing mode specifier. The
-``=`` means we are capturing the ``races`` variable by reference. We could have
-omitted the ``&`` to capture the variable by copy, or even remove the variable
-name to say we are capturing any variable by reference. A *ranged-based for
-loop* is used with the ``auto`` qualifier. There is no extra qualifier around
-the ``auto`` so we get a copy (of a ``Warrior`` pointer).
+identifier is an elegant replacement to ``NULL`` or ``0``. It is a new
+*keyword* that has its own type ``std::nullptr_t`` that is implicitly
+convertible and comparable to any pointer, but not to integral typs except
+``bool``. Then the lambda used for the generator uses a capture list with a
+capturing mode specifier. The ``=`` means we are capturing the ``races``
+variable by reference. We could have omitted the ``&`` to capture the variable
+by copy, or even remove the variable name to say we are capturing any variable
+by reference. A *ranged-based for loop* is used with the ``auto`` qualifier.
+There is no extra qualifier around the ``auto`` so we get a copy (of a
+``Warrior`` pointer).
 
 Using your eagle-eye powers, you may have noticed that we have started leaking
 memory, as the memory allocated by ``pick_random_race`` is never freed. To make
@@ -573,10 +576,10 @@ freed when all references to that pointer are lost. That will certainly happens
 at the end of the outermost loop body, when the holding vector will be deleted.
 
 To help our warrior to survive several battles, we allow him to have a rest
-between each round, using the ``Warrior::regen()`` method. This method is
+between each round, using the ``Warrior::recover()`` method. This method is
 defined as::
 
-    virtual void regen() {
+    virtual void recover() {
         auto recovery_rate = _max_hp / 10;
         _hp = std::min(_max_hp, _hp + recovery_rate * 2);
     }

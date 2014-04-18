@@ -79,7 +79,10 @@ class Warrior {
             // deals ceil(str/START_STR) damages, cannot go below 0
             other._hp = std::max(0L, other._hp - long((_str + START_STR - 1) / START_STR));
         }
-        virtual void regen() {
+
+        // recover some HP, based on maximum hit points
+        // one cannot grow beyond his original HP!
+        virtual void recover() {
             auto recovery_rate = _max_hp / 10;
             _hp = std::min(_max_hp, _hp + recovery_rate * 2);
         }
@@ -249,7 +252,7 @@ int main(int argc, char * argv[]) {
             std::cout << "You survived one more round! It's time to harvest the fruits of your efforts" << std::endl
                       << "status: HP=" << me->hp() << '/' << me->max_hp() << " STR=" << me->str() << " AGI=" << me->agi() <<std::endl;
             me->buf(StatChooser<1>{std::cin, std::cout});
-            me->regen();
+            me->recover();
         }
     }
 
