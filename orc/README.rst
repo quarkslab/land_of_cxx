@@ -53,9 +53,9 @@ Level 1
 -------
 
 In ORC, you are a brave warrior. So let's design a simple ``Warrior`` class. A
-Warrior has a name, say a ``std::string``, and it was given by his mum, and
-will never change, so it is ``const``. It also has a few hit points, which
-leaves us with::
+Warrior has a name, say a ``std::string``, given by his mum. It will never
+change, so it is defined ``const``. It also has a few hit points, which leaves
+us with::
 
     class Warrior {
         std::string const _name;
@@ -80,9 +80,9 @@ Instead of ``delete`` we could have used ``default`` to make the implicit
 generation explicit.
 
 It's not very nice to have hard-coded constants like this ``20``. Instead we
-will use a top-level constant, ``START_HP`` declared as a constant using the
-new keyword ``constexpr``. In that case, its use is similar to ``const``, but
-more on this later::
+will use a class constant, ``START_HP`` declared as a constant using the new
+keyword ``constexpr``. In that case, its looks similar to ``const``, but more
+on this later::
 
    long constexpr START_HP = 20;
 
@@ -125,8 +125,8 @@ accessor)::
 
 Note that we used braces to initialize our objects. It's a new feature from
 C++11 called *uniform initialization* and it prevents strange stuffs like
-``Warrior me();`` looking like a function declaration.
-
+``Warrior me();`` not looking like a function declaration, but parsed as a
+function declaration (aka the "most vexing parse").
 
 The game is not very fun as of now... let's step up one level!
 
@@ -153,9 +153,11 @@ Let's use this randomness to choose which warrior attacks and which one retaliat
     void fight(Warrior& self, Warrior& other)
     {
         while(self and other) {
-            Warrior *first= &self, *second = &other;
-            if(flip(coin))
-                std::swap(first, second);
+            Warrior *first{&self}, *second{&other};
+            if(flip(coin)) {
+                using std::swap;
+                swap(first, second);
+            }
             first->attack(second);
             if(*second)
                 second->attack(*first);
@@ -163,8 +165,10 @@ Let's use this randomness to choose which warrior attacks and which one retaliat
     }
 
 Note how ``std::swap`` is used to permute the Warriors depending on the coin
-flip. The implementation of ``Warrior`` would have prevented to use
-``std::swap`` on the references as the copy constructor is deleted. Try it!
+flip. The ``using`` constructs enables *Argument Dependent Lookup*, see
+http://en.wikipedia.org/wiki/Argument-dependent_name_lookup. The implementation
+of ``Warrior`` would have prevented to use ``std::swap`` on the references as
+the copy constructor is deleted. Try it!
 
 Now we should win exactly half of the games... Not very entertaining. Try next
 level to make the game engine more complex!
@@ -225,19 +229,14 @@ The name of the warrior somehow lacks the flavor brought by *Aegnor* the elf or
 *Gorbag* the orc. Let's implement a default constructor for each race that
 randomly picks a flavorful name::
 
-    Elf() : Elf(elvish_names[std::uniform_int_distribution<>{0, elvish_names.size() -1}(coin)])
+    Elf() : Elf(random_pick(names, names + sizeof(names)/sizeof(*names)))
     {
     }
 
 Note that the default constructor of ``Elf`` uses the other constructor of
-``Elf``. This is a new feature from C++11! Elvish_names is initialized as an
-``std::array`` which is just a thin wrapper around a plain array, with an
-interface compatible with the remainder of the standard library::
+``Elf``. This is a new feature from C++11: *delegate constructors*! Elvish_names is initialized as a static member with constant size::
 
-    const std::array<std::string, 3> elvish_names{{"Aegnor", "Beleg", "Curufin"}};
-
-The ``vector`` is initialized through an ``initializer_list``, a pretty neat new feature too!
-
+    static constexpr char const* names[]{{"Aegnor", "Beleg", "Curufin"}};
 
 Now that we have a more cosmopolitan world with a lot of funky names, instead
 of a ``Warrior``, the player can get a random race::
@@ -253,9 +252,9 @@ of a ``Warrior``, the player can get a random race::
         return challengers[0];
     }
 
-That's not very efficient, but it works. Note that ``array`` and initialization
-lists are used once again, and that we are also using a lambda function! More
-on this later though.
+That's not very efficient, but it works. Note that ``array`` and
+*initialization lists* are used even if an ``std::vector`` might more suitable
+there, and that we are also using a lambda function! More on this later though.
 
 Also note the ``[[yeah]]`` attribute, which uses the new attribute mechanism.
 Here the attribute is not recognized by the compiler and would result in a
@@ -263,13 +262,16 @@ warning.
 
 In the ``main``, we can now write::
 
-    Warrior*me = pick_random_race("me"),
-           *other = new Orc();
+    Warrior* me = pick_random_race("me"),
+           * other = new Orc();
 
-Don't forget to add the ``delete`` calls in the end ;-)
+Don't forget to add the ``delete`` calls in the end ;-) C++11 provides a way,
+through ``unique_ptr`` and ``shared_ptr`` to avoid the use of ``new`` and
+``delete`` in many cases, but let's go at our own speed.
 
-Have you noticed how difficult it would be to use ``pick_random_race`` with the
-default constructors? More on this on next level!
+Have you noticed that ``pick_random_race`` is tied to a specific Warrior's
+constructor. It would be cumbersome to rewrite this function for each possible
+constructor. More on this in the next level!
 
 Level 4
 -------
@@ -351,28 +353,29 @@ member variables, accessors and also extend its constructor::
     size_t str() const { return _str; }
     size_t agi() const { return _agi; }
 
-We introduced a few more top-level constants::
+We introduced a few more constants::
 
-    size_t constexpr START_AGI = 5;
-    size_t constexpr START_STR = 5;
+    static size_t constexpr START_AGI = 5;
+    static size_t constexpr START_STR = 5;
 
-AGIlity is used to compute who strikes first, and hon many time you strike::
+AGIlity is used to compute who strikes first, and how many time you strike::
 
     void fight(Warrior& self, Warrior& other)
     {
         while(self and other) {
+            using std::swap;
             Warrior *first = &self, *second = &other;
             if(other.agi() > self.agi())
-                std::swap(first, second);
+                swap(first, second);
             else if(other.agi() == self.agi() and flip(coin))
-                std::swap(first, second);
-            auto strikes = 1 + (first->agi() - second->agi()) / START_AGI ;
+                swap(first, second);
+            auto strikes = 1 + (first->agi() - second->agi()) / Warrior::START_AGI ;
             std::cout << first->name() << " strikes " << strikes << " times" << std::endl;
             while(strikes--)
                 first->attack(*second);
             if(*second)
                 second->attack(*first);
-            std::cout << "after this round, you have:" << self.hp() << " HP left and " << other.name() << " has:" << other.hp() << " HP left" << std::endl;
+            std::cout << "after this round, " << self.name() << " has:" << self.hp() << " HP left and " << other.name() << " has:" << other.hp() << " HP left" << std::endl;
         }
     }
 
@@ -389,7 +392,7 @@ STRenght is used to compute the amount of damage dealt per blow::
     }
 
 Notice this ``static_assert``? It verifies some properties on a compile-time
-constant, just has an ``assert`` would for runtime expressions.
+constant, just as an ``assert`` would for runtime expressions.
 
 By the way, the game looks better with more asciiart, as in::
 
@@ -481,6 +484,8 @@ introduces a parametric type to store function-like objects::
 
     std::function<bool(std::string::const_reference)> isnotspace =  [](std::string::const_reference c) { return not std::isspace(c); };
 
+Note that's a generic object that will store the lambda, it's not the lambda type!
+
 To use our ``StatChooser``, we need an extra method in the ``Warrior`` class::
 
     template<size_t N>
@@ -506,9 +511,10 @@ you have to write::
 
     me->buf(StatChooser<8>(std::cin, std::cout));
 
-It also uses a *range-based for loop*, that automates the ``for(auto iter =
-v.begin(), end = v.end(); iter != end; ++iter)`` idiom, based on the
-availability of the ``begin()`` and ``end()`` method.
+You would not do this in a real code. But that's a tutorial, right? It also
+uses a *range-based for loop*, that automates the ``for(auto iter = v.begin(),
+end = v.end(); iter != end; ++iter)`` idiom, based on the availability of the
+``begin()`` and ``end()`` method.
 
 Update your main with the ``StatChooser``, and watch your buffed warrior win
 all his fights... Until next level!
@@ -517,9 +523,9 @@ Level 7
 -------
 
 Now that your warrior can boost his stat, it's time to meet stronger opponents!
-Each time you win a duel, you get some stat boost, you partially regen your HP
+Each time you win a duel, you get some stat boost, you partially recover your HP
 and a new challenger comes. After a few round, you'll have to fight several
-foes in a row and so on... First step is to update the ``main`` function::
+foes in a row and so until you die... First step is to update the ``main`` function::
 
     Warrior *me = pick_random_race(races, "me");
     me->buf(StatChooser<8>(std::cin, std::cout));
@@ -539,18 +545,21 @@ foes in a row and so on... First step is to update the ``main`` function::
             std::cout << "You survived one more round! It's time to harvest the fruits of your efforts" << std::endl
                       << "status: HP=" << me->hp() << '/' << me->max_hp() << " STR=" << me->str() << " AGI=" << me->agi() <<std::endl;
             me->buf(StatChooser<1>{std::cin, std::cout});
-            me->regen();
+            me->recover();
         }
     }
 
 We are using quite a few C++11 features here. First, notice the ``nullptr``
-identifier is an elegant replacement to ``NULL`` or ``0``. Then the lambda used
-for the generator uses a capture list with a capturing mode specifier. The
-``=`` means we are capturing the ``races`` variable by reference. We could have
-omitted the ``&`` to capture the variable by copy, or even remove the variable
-name to say we are capturing any variable by reference. A *ranged-based for
-loop* is used with the ``auto`` qualifier. There is no extra qualifier around
-the ``auto`` so we get a copy (of a ``Warrior`` pointer).
+identifier is an elegant replacement to ``NULL`` or ``0``. It is a new
+*keyword* that has its own type ``std::nullptr_t`` that is implicitly
+convertible and comparable to any pointer, but not to integral typs except
+``bool``. Then the lambda used for the generator uses a capture list with a
+capturing mode specifier. The ``=`` means we are capturing the ``races``
+variable by reference. We could have omitted the ``&`` to capture the variable
+by copy, or even remove the variable name to say we are capturing any variable
+by reference. A *ranged-based for loop* is used with the ``auto`` qualifier.
+There is no extra qualifier around the ``auto`` so we get a copy (of a
+``Warrior`` pointer).
 
 Using your eagle-eye powers, you may have noticed that we have started leaking
 memory, as the memory allocated by ``pick_random_race`` is never freed. To make
@@ -567,10 +576,10 @@ freed when all references to that pointer are lost. That will certainly happens
 at the end of the outermost loop body, when the holding vector will be deleted.
 
 To help our warrior to survive several battles, we allow him to have a rest
-between each round, using the ``Warrior::regen()`` method. This method is
+between each round, using the ``Warrior::recover()`` method. This method is
 defined as::
 
-    virtual void regen() {
+    virtual void recover() {
         auto recovery_rate = _max_hp / 10;
         _hp = std::min(_max_hp, _hp + recovery_rate * 2);
     }
