@@ -17,19 +17,11 @@ namespace {
     std::uniform_int_distribution<> flip(0, 1);
 }
 
-long constexpr START_HP = 20;
-size_t constexpr START_AGI = 5;
-size_t constexpr START_STR = 5;
-
 enum Stat : char {
     HP = 'h',
     STR = 's',
     AGI = 'a'
 };
-
-const std::array<std::string, 3> elvish_names{{"Aegnor", "Beleg", "Curufin"}};
-const std::array<std::string, 3> orcish_names{{"Azog", "Bolg", "Grishnakh"}};
-const std::array<std::string, 3> human_names {{"Anarion", "Vorondil", "Mardil"}};
 
 std::string& trim(std::string & s) {
     auto isnotspace =  [](std::string::const_reference c) -> bool { return not std::isspace(c); };
@@ -56,7 +48,13 @@ class StatChooser : public std::array<char, N> {
     }
 };
 
+// pick a random element between ``begin'' and ``end''
+char const* random_pick(char const * const *begin, char const * const *end) {
+    return begin[std::uniform_int_distribution<>{0, int(end - begin - 1)}(coin)];
+}
+// A warrior has a name and some HP and is capable of attacking another warrior
 class Warrior {
+
     std::string const _name;
     long _max_hp;
     std::atomic<long> _hp;
@@ -65,7 +63,11 @@ class Warrior {
 
     public:
 
-        Warrior(std::string const& name, long hp=START_HP, size_t str = START_STR, size_t agi = START_AGI):
+        static long constexpr START_HP = 20;
+        static size_t constexpr START_AGI = 5;
+        static size_t constexpr START_STR = 5;
+
+        Warrior(std::string const& name, long hp=START_HP, size_t str = START_HP, size_t agi = START_AGI):
             _name(name),
             _max_hp(hp),
             _hp(hp),
@@ -78,11 +80,16 @@ class Warrior {
 
         Warrior(Warrior const&) = delete;
 
+        // this warrior attacks another warrior and deals some damage
         virtual void attack(Warrior& other) const {
             static_assert(START_STR>0, "not dividing by zero");
+            // deals ceil(str/START_STR) damages, cannot go below 0
             other._hp -= long((_str + START_STR - 1) / START_STR);
         }
-        virtual void regen() {
+
+        // recover some HP, based on maximum hit points
+        // one cannot grow beyond his original HP!
+        virtual void recover() {
             auto recovery_rate = _max_hp / 10;
             _hp = std::min(_max_hp, _hp + recovery_rate * 2);
         }
@@ -95,6 +102,7 @@ class Warrior {
         size_t str() const { return _str; }
         size_t agi() const { return _agi; }
 
+        // test if this warrior is still alive
         explicit operator bool() const {
             return _hp > 0;
         }
@@ -115,22 +123,28 @@ class Warrior {
 class Knight : public Warrior {
     public:
 
+    static constexpr char const* names[] = {"Anarion", "Vorondil", "Mardil"};
+
     Knight(std::string const& name) : Warrior(name, START_HP + 10)
     {
     }
-    Knight() : Knight(human_names[std::uniform_int_distribution<>{0, human_names.size() - 1}(coin)])
+    Knight() : Knight(random_pick(names, names +sizeof(names)/(sizeof*names)))
     {
     }
     virtual ~Knight() override {}
+
 };
+constexpr char const* Knight::names[];
 
 class Elf : public Warrior {
     public:
 
+    static constexpr char const* names[] = {"Aegnor", "Beleg", "Curufin"};
+
     Elf(std::string const& name) : Warrior(name, START_HP - 5)
     {
     }
-    Elf() : Elf(elvish_names[std::uniform_int_distribution<>{0, elvish_names.size() - 1}(coin)])
+    Elf() : Elf(random_pick(names, names + sizeof(names)/sizeof(*names)))
     {
     }
     virtual ~Elf() override {}
@@ -141,13 +155,17 @@ class Elf : public Warrior {
             attack(other);
     }
 };
+constexpr char const* Elf::names[];
 
 class Orc : public Warrior {
     public:
+
+    static constexpr char const* names[] = {"Azog", "Bolg", "Grishnakh"};
+
     Orc(std::string const& name) : Warrior(name)
     {
     }
-    Orc() : Orc(orcish_names[std::uniform_int_distribution<>{0, orcish_names.size() - 1}(coin)])
+    Orc() : Orc(random_pick(names, names + sizeof(names)/sizeof(*names)))
     {
     }
 
@@ -159,6 +177,7 @@ class Orc : public Warrior {
             Warrior::attack(other);
     }
 };
+constexpr char const* Orc::names[];
 
 template<class T> struct race_trait;
 template<>
@@ -179,7 +198,7 @@ constexpr char race_trait<Elf>::value[];
 
 void start_fight(Warrior& self,  Warrior& other) {
     auto constexpr round_duration = 1;
-    size_t const nb_strikes = (self.agi() + START_AGI - 1) / START_AGI;
+    size_t const nb_strikes = (self.agi() + Warrior::START_AGI - 1) / Warrior::START_AGI;
     std::chrono::duration<double, std::ratio<1>> charging_duration{double(round_duration)/ nb_strikes};
     while(self and other) {
     for(size_t i = 0; i < nb_strikes; ++i)
@@ -195,6 +214,7 @@ void start_fight(Warrior& self,  Warrior& other) {
     }
 }
 
+// make the two Warriors ``self'' and ``other'' fight until one of the die
 void fight(Warrior& self, Warrior& other)
 {
     std::thread foe(start_fight, std::ref(other), std::ref(self));
@@ -245,6 +265,7 @@ Warrior* pick_race(RaceSelector<Races...>, std::string const& name, std::istream
     return race_selector<Races...>(name, buffer[0]);
 }
 
+// pick a random race and create a Warrior from it, named as ``name''
 template < class... Races, template <class...> class RaceSelector,
            class... Args>
 Warrior* pick_random_race(RaceSelector<Races...>, Args const&... args)
@@ -279,6 +300,7 @@ int main(int argc, char * argv[]) {
 
 
     Warrior *me = pick_race(races, "me", std::cin, std::cout);
+    // boost the stat eight times
     me->buf(StatChooser<8>(std::cin, std::cout));
 
     for(size_t round = 1; *me; ++round)
@@ -297,7 +319,7 @@ int main(int argc, char * argv[]) {
             std::cout << "You survived one more round! It's time to harvest the fruits of your efforts" << std::endl
                       << "status: HP=" << me->hp() << '/' << me->max_hp() << " STR=" << me->str() << " AGI=" << me->agi() <<std::endl;
             me->buf(StatChooser<1>{std::cin, std::cout});
-            me->regen();
+            me->recover();
         }
     }
 
