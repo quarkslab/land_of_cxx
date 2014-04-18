@@ -44,7 +44,7 @@ To do so, we can use a new feature from C++11, *raw string literals*::
     R"delim(!%
     $)delim"
 
-We can for instance put the banner in a ``static const char []``, or in an
-unnamed namespace, and feed it to ``std::cout``.
+We can for instance put the banner in a ``static`` variable or in an
+anonymous namespace, and feed it to ``std::cout``.
 
 Easy enough? Move on to next level!
