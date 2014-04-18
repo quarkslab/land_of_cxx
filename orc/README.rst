@@ -358,23 +358,24 @@ We introduced a few more constants::
     static size_t constexpr START_AGI = 5;
     static size_t constexpr START_STR = 5;
 
-AGIlity is used to compute who strikes first, and hon many time you strike::
+AGIlity is used to compute who strikes first, and how many time you strike::
 
     void fight(Warrior& self, Warrior& other)
     {
         while(self and other) {
+            using std::swap;
             Warrior *first = &self, *second = &other;
             if(other.agi() > self.agi())
-                std::swap(first, second);
+                swap(first, second);
             else if(other.agi() == self.agi() and flip(coin))
-                std::swap(first, second);
+                swap(first, second);
             auto strikes = 1 + (first->agi() - second->agi()) / Warrior::START_AGI ;
             std::cout << first->name() << " strikes " << strikes << " times" << std::endl;
             while(strikes--)
                 first->attack(*second);
             if(*second)
                 second->attack(*first);
-            std::cout << "after this round, you have:" << self.hp() << " HP left and " << other.name() << " has:" << other.hp() << " HP left" << std::endl;
+            std::cout << "after this round, " << self.name() << " has:" << self.hp() << " HP left and " << other.name() << " has:" << other.hp() << " HP left" << std::endl;
         }
     }
 
@@ -391,7 +392,7 @@ STRenght is used to compute the amount of damage dealt per blow::
     }
 
 Notice this ``static_assert``? It verifies some properties on a compile-time
-constant, just has an ``assert`` would for runtime expressions.
+constant, just as an ``assert`` would for runtime expressions.
 
 By the way, the game looks better with more asciiart, as in::
 

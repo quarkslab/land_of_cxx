@@ -42,6 +42,7 @@ class Warrior {
         // this warrior attacks another warrior and deals some damage
         virtual void attack(Warrior& other) const {
             static_assert(START_STR>0, "not dividing by zero");
+            // deals ceil(str/START_STR) damages, cannot go below 0
             other._hp = std::max(0L, other._hp - long((_str + START_STR - 1) / START_STR));
         }
 
@@ -123,10 +124,12 @@ void fight(Warrior& self, Warrior& other)
     while(self and other) {
         using std::swap; // allows argument Dependent Lookup
         Warrior *first = &self, *second = &other;
+        // the one with more agi strikes, flip a coin in case of draw
         if(other.agi() > self.agi())
             swap(first, second);
         else if(other.agi() == self.agi() and flip(coin))
             swap(first, second);
+        // the more agi you get, the more strikes you hit
         auto strikes = 1 + (first->agi() - second->agi()) / Warrior::START_AGI ;
         std::cout << first->name() << " strikes " << strikes << " times" << std::endl;
         while(strikes--)
