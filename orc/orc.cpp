@@ -12,14 +12,15 @@ namespace {
 char const* random_pick(char const * const *begin, char const * const *end) {
     return begin[std::uniform_int_distribution<>{0, int(end - begin - 1)}(coin)];
 }
-
-long constexpr START_HP = 20;
-
+// A warrior has a name and some HP and is capable of attacking another warrior
 class Warrior {
+
     std::string const _name;
     long _hp;
 
     public:
+
+        static long constexpr START_HP = 20;
 
         Warrior(std::string const& name, long hp=START_HP):
             _name(name),
@@ -31,6 +32,7 @@ class Warrior {
 
         Warrior(Warrior const&) = delete;
 
+        // this warrior attacks another warrior and deals some damage
         virtual void attack(Warrior& other) const {
             other._hp = std::max(0L, other._hp - 1);
         }
@@ -39,6 +41,7 @@ class Warrior {
             return _name;
         }
 
+        // test if this warrior is still alive
         explicit operator bool() const {
             return _hp;
         }
@@ -103,11 +106,14 @@ class Orc : public Warrior {
 };
 constexpr char const* Orc::names[];
 
+// make the two Warriors ``self'' and ``other'' fight until one of the die
 void fight(Warrior& self, Warrior& other) {
     while(self and other) {
-        Warrior *first= &self, *second = &other;
-        if(flip(coin))
-            std::swap(first, second);
+        Warrior *first{&self}, *second{&other};
+        if(flip(coin)) {
+            using std::swap; // allows argument Dependent Lookup
+            swap(first, second);
+        }
         first->attack(*second);
         if(*second)
             second->attack(*first);

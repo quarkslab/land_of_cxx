@@ -53,9 +53,9 @@ Level 1
 -------
 
 In ORC, you are a brave warrior. So let's design a simple ``Warrior`` class. A
-Warrior has a name, say a ``std::string``, and it was given by his mum, and
-will never change, so it is ``const``. It also has a few hit points, which
-leaves us with::
+Warrior has a name, say a ``std::string``, given by his mum. It will never
+change, so it is defined ``const``. It also has a few hit points, which leaves
+us with::
 
     class Warrior {
         std::string const _name;
@@ -80,9 +80,9 @@ Instead of ``delete`` we could have used ``default`` to make the implicit
 generation explicit.
 
 It's not very nice to have hard-coded constants like this ``20``. Instead we
-will use a top-level constant, ``START_HP`` declared as a constant using the
-new keyword ``constexpr``. In that case, its use is similar to ``const``, but
-more on this later::
+will use a class constant, ``START_HP`` declared as a constant using the new
+keyword ``constexpr``. In that case, its looks similar to ``const``, but more
+on this later::
 
    long constexpr START_HP = 20;
 
@@ -125,8 +125,8 @@ accessor)::
 
 Note that we used braces to initialize our objects. It's a new feature from
 C++11 called *uniform initialization* and it prevents strange stuffs like
-``Warrior me();`` looking like a function declaration.
-
+``Warrior me();`` not looking like a function declaration, but parsed as a
+function declaration (aka the "most vexing parse").
 
 The game is not very fun as of now... let's step up one level!
 
@@ -153,9 +153,11 @@ Let's use this randomness to choose which warrior attacks and which one retaliat
     void fight(Warrior& self, Warrior& other)
     {
         while(self and other) {
-            Warrior *first= &self, *second = &other;
-            if(flip(coin))
-                std::swap(first, second);
+            Warrior *first{&self}, *second{&other};
+            if(flip(coin)) {
+                using std::swap;
+                swap(first, second);
+            }
             first->attack(second);
             if(*second)
                 second->attack(*first);
@@ -163,8 +165,10 @@ Let's use this randomness to choose which warrior attacks and which one retaliat
     }
 
 Note how ``std::swap`` is used to permute the Warriors depending on the coin
-flip. The implementation of ``Warrior`` would have prevented to use
-``std::swap`` on the references as the copy constructor is deleted. Try it!
+flip. The ``using`` constructs enables *Argument Dependent Lookup*, see
+http://en.wikipedia.org/wiki/Argument-dependent_name_lookup. The implementation
+of ``Warrior`` would have prevented to use ``std::swap`` on the references as
+the copy constructor is deleted. Try it!
 
 Now we should win exactly half of the games... Not very entertaining. Try next
 level to make the game engine more complex!
