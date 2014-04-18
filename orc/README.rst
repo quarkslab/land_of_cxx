@@ -153,9 +153,11 @@ Let's use this randomness to choose which warrior attacks and which one retaliat
     void fight(Warrior& self, Warrior& other)
     {
         while(self and other) {
-            Warrior *first= &self, *second = &other;
-            if(flip(coin))
-                std::swap(first, second);
+            Warrior *first{&self}, *second{&other};
+            if(flip(coin)) {
+                using std::swap;
+                swap(first, second);
+            }
             first->attack(second);
             if(*second)
                 second->attack(*first);
@@ -163,8 +165,10 @@ Let's use this randomness to choose which warrior attacks and which one retaliat
     }
 
 Note how ``std::swap`` is used to permute the Warriors depending on the coin
-flip. The implementation of ``Warrior`` would have prevented to use
-``std::swap`` on the references as the copy constructor is deleted. Try it!
+flip. The ``using`` constructs enables *Argument Dependent Lookup*, see
+http://en.wikipedia.org/wiki/Argument-dependent_name_lookup. The implementation
+of ``Warrior`` would have prevented to use ``std::swap`` on the references as
+the copy constructor is deleted. Try it!
 
 Now we should win exactly half of the games... Not very entertaining. Try next
 level to make the game engine more complex!

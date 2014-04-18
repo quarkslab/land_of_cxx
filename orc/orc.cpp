@@ -38,9 +38,11 @@ class Warrior {
 
 void fight(Warrior& self, Warrior& other) {
     while(self and other) {
-        Warrior *first= &self, *second = &other;
-        if(flip(coin))
-            std::swap(first, second);
+        Warrior *first{&self}, *second{&other};
+        if(flip(coin)) {
+            using std::swap; // allows argument Dependent Lookup
+            swap(first, second);
+        }
         first->attack(*second);
         if(*second)
             second->attack(*first);
