@@ -9,6 +9,7 @@ namespace {
     std::uniform_int_distribution<> flip(0, 1);
 }
 
+// pick a random element between ``begin'' and ``end''
 char const* random_pick(char const * const *begin, char const * const *end) {
     return begin[std::uniform_int_distribution<>{0, int(end - begin - 1)}(coin)];
 }
@@ -120,6 +121,7 @@ void fight(Warrior& self, Warrior& other) {
     }
 }
 
+// pick a random race and create a Warrior from it, named as ``name''
 Warrior* pick_random_race(std::string const& name) {
     std::array<Warrior *, 3> challengers{{ new Knight(name),
                                           new Elf(name),

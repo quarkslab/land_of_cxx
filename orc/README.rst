@@ -234,12 +234,9 @@ randomly picks a flavorful name::
     }
 
 Note that the default constructor of ``Elf`` uses the other constructor of
-``Elf``. This is a new feature from C++11! Elvish_names is initialized as a static member with constant size::
+``Elf``. This is a new feature from C++11: *delegate constructors*! Elvish_names is initialized as a static member with constant size::
 
     static constexpr char const* names[]{{"Aegnor", "Beleg", "Curufin"}};
-
-The ``vector`` is initialized through an ``initializer_list``, a pretty neat new feature too!
-
 
 Now that we have a more cosmopolitan world with a lot of funky names, instead
 of a ``Warrior``, the player can get a random race::
@@ -255,9 +252,9 @@ of a ``Warrior``, the player can get a random race::
         return challengers[0];
     }
 
-That's not very efficient, but it works. Note that ``array`` and initialization
-lists are used once again, and that we are also using a lambda function! More
-on this later though.
+That's not very efficient, but it works. Note that ``array`` and
+*initialization lists* are used even if an ``std::vector`` might more suitable
+there, and that we are also using a lambda function! More on this later though.
 
 Also note the ``[[yeah]]`` attribute, which uses the new attribute mechanism.
 Here the attribute is not recognized by the compiler and would result in a
@@ -265,10 +262,13 @@ warning.
 
 In the ``main``, we can now write::
 
-    Warrior*me = pick_random_race("me"),
-           *other = new Orc();
+    Warrior* me = pick_random_race("me"),
+           * other = new Orc();
 
-Don't forget to add the ``delete`` calls in the end ;-)
+Don't forget to add the ``delete`` calls in the end ;-) C++11 provides a way,
+through ``unique_ptr`` and ``shared_ptr`` to avoid the use of ``new`` and
+``delete`` in many cases, but let's go at our own speed.
 
-Have you noticed how difficult it would be to use ``pick_random_race`` with the
-default constructors? More on this on next level!
+Have you noticed that ``pick_random_race`` is tied to a specific Warrior's
+constructor. It would be cumbersome to rewrite this function for each possible
+constructor. More on this in the next level!
