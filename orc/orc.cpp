@@ -9,10 +9,11 @@ namespace {
     std::uniform_int_distribution<> flip(0, 1);
 }
 
+char const* random_pick(char const * const *begin, char const * const *end) {
+    return begin[std::uniform_int_distribution<>{0, int(end - begin - 1)}(coin)];
+}
+
 long constexpr START_HP = 20;
-const std::array<std::string, 3> elvish_names{{"Aegnor", "Beleg", "Curufin"}};
-const std::array<std::string, 3> orcish_names{{"Azog", "Bolg", "Grishnakh"}};
-const std::array<std::string, 3> human_names {{"Anarion", "Vorondil", "Mardil"}};
 
 class Warrior {
     std::string const _name;
@@ -46,22 +47,28 @@ class Warrior {
 class Knight : public Warrior {
     public:
 
+    static constexpr char const* names[] = {"Anarion", "Vorondil", "Mardil"};
+
     Knight(std::string const& name) : Warrior(name, START_HP + 10)
     {
     }
-    Knight() : Knight(human_names[std::uniform_int_distribution<>{0, human_names.size() - 1}(coin)])
+    Knight() : Knight(random_pick(names, names +sizeof(names)/(sizeof*names)))
     {
     }
     virtual ~Knight() override {}
+
 };
+constexpr char const* Knight::names[];
 
 class Elf : public Warrior {
     public:
 
+    static constexpr char const* names[] = {"Aegnor", "Beleg", "Curufin"};
+
     Elf(std::string const& name) : Warrior(name, START_HP - 5)
     {
     }
-    Elf() : Elf(elvish_names[std::uniform_int_distribution<>{0, elvish_names.size() - 1}(coin)])
+    Elf() : Elf(random_pick(names, names + sizeof(names)/sizeof(*names)))
     {
     }
     virtual ~Elf() override {}
@@ -72,13 +79,17 @@ class Elf : public Warrior {
             attack(other);
     }
 };
+constexpr char const* Elf::names[];
 
 class Orc : public Warrior {
     public:
+
+    static constexpr char const* names[] = {"Azog", "Bolg", "Grishnakh"};
+
     Orc(std::string const& name) : Warrior(name)
     {
     }
-    Orc() : Orc(orcish_names[std::uniform_int_distribution<>{0, orcish_names.size() - 1}(coin)])
+    Orc() : Orc(random_pick(names, names + sizeof(names)/sizeof(*names)))
     {
     }
 
@@ -90,6 +101,7 @@ class Orc : public Warrior {
             Warrior::attack(other);
     }
 };
+constexpr char const* Orc::names[];
 
 void fight(Warrior& self, Warrior& other) {
     while(self and other) {

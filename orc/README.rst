@@ -225,16 +225,14 @@ The name of the warrior somehow lacks the flavor brought by *Aegnor* the elf or
 *Gorbag* the orc. Let's implement a default constructor for each race that
 randomly picks a flavorful name::
 
-    Elf() : Elf(elvish_names[std::uniform_int_distribution<>{0, elvish_names.size() -1}(coin)])
+    Elf() : Elf(random_pick(names, names + sizeof(names)/sizeof(*names)))
     {
     }
 
 Note that the default constructor of ``Elf`` uses the other constructor of
-``Elf``. This is a new feature from C++11! Elvish_names is initialized as an
-``std::array`` which is just a thin wrapper around a plain array, with an
-interface compatible with the remainder of the standard library::
+``Elf``. This is a new feature from C++11! Elvish_names is initialized as a static member with constant size::
 
-    const std::array<std::string, 3> elvish_names{{"Aegnor", "Beleg", "Curufin"}};
+    static constexpr char const* names[]{{"Aegnor", "Beleg", "Curufin"}};
 
 The ``vector`` is initialized through an ``initializer_list``, a pretty neat new feature too!
 
