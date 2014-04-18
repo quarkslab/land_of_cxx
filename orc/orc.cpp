@@ -221,6 +221,7 @@ int main(int argc, char * argv[]) {
     Warrior*me = pick_random_race(races, "me"),
            *other = pick_random_race(races);
 
+    // boost the stat eight times
     me->buf(StatChooser<8>(std::cin, std::cout));
 
     fight(*me, *other);

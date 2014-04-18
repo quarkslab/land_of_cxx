@@ -484,6 +484,8 @@ introduces a parametric type to store function-like objects::
 
     std::function<bool(std::string::const_reference)> isnotspace =  [](std::string::const_reference c) { return not std::isspace(c); };
 
+Note that's a generic object that will store the lambda, it's not the lambda type!
+
 To use our ``StatChooser``, we need an extra method in the ``Warrior`` class::
 
     template<size_t N>
@@ -509,9 +511,10 @@ you have to write::
 
     me->buf(StatChooser<8>(std::cin, std::cout));
 
-It also uses a *range-based for loop*, that automates the ``for(auto iter =
-v.begin(), end = v.end(); iter != end; ++iter)`` idiom, based on the
-availability of the ``begin()`` and ``end()`` method.
+You would not do this in a real code. But that's a tutorial, right? It also
+uses a *range-based for loop*, that automates the ``for(auto iter = v.begin(),
+end = v.end(); iter != end; ++iter)`` idiom, based on the availability of the
+``begin()`` and ``end()`` method.
 
 Update your main with the ``StatChooser``, and watch your buffed warrior win
 all his fights... Until next level!
