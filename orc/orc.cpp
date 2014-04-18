@@ -1,13 +1,15 @@
 #include <iostream>
 #include <algorithm>
 
-long constexpr START_HP = 20;
-
+// A warrior has a name and some HP and is capable of attacking another warrior
 class Warrior {
+
     std::string const _name;
     long _hp;
 
     public:
+
+        static long constexpr START_HP = 20;
 
         Warrior(std::string const& name, long hp=START_HP):
             _name(name),
@@ -17,6 +19,7 @@ class Warrior {
 
         Warrior(Warrior const&) = delete;
 
+        // this warrior attacks another warrior and deals some damage
         void attack(Warrior& other) const {
             other._hp = std::max(0L, other._hp - 1);
         }
@@ -25,11 +28,13 @@ class Warrior {
             return _name;
         }
 
+        // test if this warrior is still alive
         explicit operator bool() const {
             return _hp;
         }
 };
 
+// make the two Warriors ``self'' and ``other'' fight until one of the die
 void fight(Warrior& self, Warrior& other) {
     while(self and other) {
         self.attack(other);

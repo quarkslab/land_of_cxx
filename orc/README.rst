@@ -53,9 +53,9 @@ Level 1
 -------
 
 In ORC, you are a brave warrior. So let's design a simple ``Warrior`` class. A
-Warrior has a name, say a ``std::string``, and it was given by his mum, and
-will never change, so it is ``const``. It also has a few hit points, which
-leaves us with::
+Warrior has a name, say a ``std::string``, given by his mum. It will never
+change, so it is defined ``const``. It also has a few hit points, which leaves
+us with::
 
     class Warrior {
         std::string const _name;
@@ -80,9 +80,9 @@ Instead of ``delete`` we could have used ``default`` to make the implicit
 generation explicit.
 
 It's not very nice to have hard-coded constants like this ``20``. Instead we
-will use a top-level constant, ``START_HP`` declared as a constant using the
-new keyword ``constexpr``. In that case, its use is similar to ``const``, but
-more on this later::
+will use a class constant, ``START_HP`` declared as a constant using the new
+keyword ``constexpr``. In that case, its looks similar to ``const``, but more
+on this later::
 
    long constexpr START_HP = 20;
 
@@ -125,7 +125,7 @@ accessor)::
 
 Note that we used braces to initialize our objects. It's a new feature from
 C++11 called *uniform initialization* and it prevents strange stuffs like
-``Warrior me();`` looking like a function declaration.
-
+``Warrior me();`` not looking like a function declaration, but parsed as a
+function declaration (aka the "most vexing parse").
 
 The game is not very fun as of now... let's step up one level!
