@@ -7,6 +7,9 @@ development of old-school, text-based games.
 
 Available tutorials:
 
+:WALDO: a tutorial to learn about basic C++ features. The fun begins in branch
+        ``waldo/intro``
+
 :ORC: a tutorial to learn about C++11 features. The fun begins in branch
       ``orc/intro``
 
