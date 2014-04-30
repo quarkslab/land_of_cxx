@@ -63,3 +63,65 @@ Finally we can stream the resulting string to the standard output::
 and be wowed by the result!
 
 In next level, we will hide a small ``w`` in the resulting image!
+
+Level 1
+=======
+
+In the real game, Waldo is a nice guy with glasses and a stripped hat. In our
+game, it will be a nice ``w`` (with glasses and a stripped hat?). We will hide
+this letter in a random location in the ``waldo`` string, but it would be to
+easy to put it in-place of a blank character, so we'll randomly pick a
+character, check if it is a blank and iterate again if needed.
+
+To begin with, a random number between ``0`` (included) and ``waldo.size()``
+(excluded) is needed. C++ has a complex random number generation system, the
+header we need is::
+
+    #include <random>
+
+and the typical idiom in that case is::
+
+    std::random_device rd;
+    std::default_random_engine rnd(rd());
+    std::uniform_int_distribution<size_t> uniform_dist(0, waldo.size() - 1);
+
+as it make it possible to get a random number within the proper bound by
+calling::
+
+    size_t pos = uniform_dist(rnd);
+
+where ``size_t`` is a convenient way to say "unsigned int large enough to index
+the whole memory".
+
+To check if the character at this particular location is a blank, one can use::
+
+    std::isblank(waldo[pos])
+
+so to keep picking chars until a non-blank value is found, we can use a loop::
+
+    size_t pos;
+    do {
+        pos = uniform_dist(rnd);
+    } while(std::isblank(from[pos]));
+
+and finish the work by setting the proper position with the proper value::
+
+    from[pos] = 'w';
+
+Instead of writing all this in the ``main`` function, it would be nice to have
+everything in a function that changes its argument in-place::
+
+    void hide_waldo(std::string& from) {
+    // function body
+    }
+
+where ``void`` means we are not producing any value, and ``(std::string& from)``
+means the function takes a single argument named ``from`` of type
+``std::string`` which is passed by reference (the ``&``) i.e. the function can
+modify the argument, and the modification will be seen at the call site. The
+call site simply looks like::
+
+    hide_waldo(waldo);
+
+Putting everything together, we now have a nice game! There are a few
+limitations though, as we perform no check on user input!
