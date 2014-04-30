@@ -305,3 +305,26 @@ everything related to the construction of a valid picture is syndicated in the
 same place, that sounds good!
 
 See you in level 4 for a last touch of style!
+
+Level 4
+=======
+
+There are still a few details in our **WALDO** implementation that could be
+improved. First there is this ``'w'`` hanging around in various places. Having
+literals spread around the code is a bad practice. It's a constant. It's related
+to waldo. So let's give it a name and store it as a ``static const`` member
+variable::
+
+    class Waldo {
+        ...
+        public:
+        static const char waldo = 'w';
+        ...
+    };
+    const char Waldo::waldo;
+
+As usual, we declare it in the ``class`` and define it outside. As it is
+``static const`` we set its immutable value inside the ``class`` once and for
+all. The we can replace all ``'w'`` occurrences by ``waldo``!
+
+That's all folks! Have fun playing **WALDO** ;-)
