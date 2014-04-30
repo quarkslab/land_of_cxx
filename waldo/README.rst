@@ -125,3 +125,66 @@ call site simply looks like::
 
 Putting everything together, we now have a nice game! There are a few
 limitations though, as we perform no check on user input!
+
+Level 2
+=======
+
+There are several situations where our game engine fails: what if the file is
+empty? What if it only has blanks? What if it already contains a ``w``? Let's
+check this out!
+
+C++ provides a convenient mechanism, called *exceptions* to report error. The
+basics are "when you find an error, report it has an exception and someone may
+manage it". A set of common exceptions are defined in the ``<stdexcept>``
+header, we'll use ``std::runtime_error``, as in::
+
+    if(something_wrong)
+        throw std::runtime_error("Something happend on the way to heaven")
+
+To perform the checks, we'll use a few standard algorithm from the
+``<algorithm>`` header. It's a nice thing to use them instead of raw loops!
+We'll design a new function to perform all the checks::
+
+    void check_validity(std::string const& picture) {
+    // body
+    }
+
+The function does not return anything, and it does not modify its argument (it
+is marked as ``const &`` which means you're working on the argument passed from
+the call site, but you cannot modify it). The only thing it will do is
+eventually ``throw`` an exception.
+
+For instance if there already is a ``w`` in the file. The ``std::find``
+algorithm is perfect for the job: it takes an iterator to the beginning and the
+end of the string, the character we are looking for and returns either an
+iterator pointing to the found character location, or an iterator pointing to
+the end of the string. But what is an iterator? It is a common concept in
+computer since that abstracts the transversal of a container. In C++, you
+generally get an iterator to the beginning of the container through ``.begin()``
+and an iterator to the end of the container through ``end()``. So to find a
+``w`` lets write::
+
+    if(std::find(picture.begin(), picture.end(), 'w') != picture.end())
+        throw std::runtime_error("Waldo symbol already in input file");
+
+note that the ``std::find`` function is generic. It can be used to find an
+integer in a vector of integer, a character in a string or a needle in a needle
+stack!
+
+The ``std::count`` algorithm is useful to count the number of occurrences of
+something within a range. So to count the number of ``\n`` (they embody new
+lines on Linux systems), lets write::
+
+     if(std::count(picture.begin(), picture.end(), '\n') == 0)
+             throw std::runtime_error("not even a single line");
+
+Finally we may prevent an infinite loop in our random search of non blank
+characters by asserting there is at least one non-blank character. The
+``std::all_of`` algorithm checks if all elements between two iterators verify a
+given function, so what about::
+
+    if(std::all_of(picture.begin(), picture.end(), std::isblank))
+            throw std::runtime_error("input file full of blank");
+
+Putting everything together, we get a pretty nice input checking function! The
+game is almost complete, but we'll do some code cleaning before playing.
