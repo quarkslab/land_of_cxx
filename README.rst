@@ -7,11 +7,14 @@ development of old-school, text-based games.
 
 Available tutorials:
 
-:WALDO: a tutorial to learn about basic C++ features. The fun begins in branch
-        ``waldo/intro``
+:DDF: Dance Dance Fingers! A tutorial to learn about basic IO features. The fun
+      begins in branch ``dancedance/intro``.
 
-:ORC: a tutorial to learn about C++11 features. The fun begins in branch
-      ``orc/intro``
+:WALDO: A tutorial to learn about basic C++ features. The fun begins in branch
+        ``waldo/intro``.
+
+:ORC: A tutorial to learn about C++11 features. The fun begins in branch
+      ``orc/intro``.
 
 
-That's all folks!
+Happy coding!
