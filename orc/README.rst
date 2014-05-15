@@ -229,12 +229,13 @@ The name of the warrior somehow lacks the flavor brought by *Aegnor* the elf or
 *Gorbag* the orc. Let's implement a default constructor for each race that
 randomly picks a flavorful name::
 
-    Elf() : Elf(random_pick(names, names + sizeof(names)/sizeof(*names)))
+    Elf() : Elf(random_pick(std::begin(names), std::end(names)))
     {
     }
 
 Note that the default constructor of ``Elf`` uses the other constructor of
-``Elf``. This is a new feature from C++11: *delegate constructors*! Elvish_names is initialized as a static member with constant size::
+``Elf``. This is a new feature from C++11: *delegate constructors*!
+Elvish_names is initialized as a static member with constant size::
 
     static constexpr char const* names[]{{"Aegnor", "Beleg", "Curufin"}};
 

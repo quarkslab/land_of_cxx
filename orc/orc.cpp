@@ -128,7 +128,7 @@ class Knight : public Warrior {
     Knight(std::string const& name) : Warrior(name, START_HP + 10)
     {
     }
-    Knight() : Knight(random_pick(names, names +sizeof(names)/(sizeof*names)))
+    Knight() : Knight(random_pick(std::begin(names), std::end(names)))
     {
     }
     virtual ~Knight() override {}
@@ -144,7 +144,7 @@ class Elf : public Warrior {
     Elf(std::string const& name) : Warrior(name, START_HP - 5)
     {
     }
-    Elf() : Elf(random_pick(names, names + sizeof(names)/sizeof(*names)))
+    Elf() : Elf(random_pick(std::begin(names), std::end(names)))
     {
     }
     virtual ~Elf() override {}
@@ -165,7 +165,7 @@ class Orc : public Warrior {
     Orc(std::string const& name) : Warrior(name)
     {
     }
-    Orc() : Orc(random_pick(names, names + sizeof(names)/sizeof(*names)))
+    Orc() : Orc(random_pick(std::begin(names), std::end(names)))
     {
     }
 
