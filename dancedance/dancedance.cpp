@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <chrono>
 
 
 int main() {
@@ -9,6 +10,9 @@ int main() {
 
     // melody to type with your finger
     const std::string melody = "ddfisfun";
+
+    // game duration
+    auto now = std::chrono::system_clock::now();
 
     // number of notes successfully typed
     // set to 0 in case of error
@@ -36,7 +40,9 @@ int main() {
         return 1;
     }
     else {
-        std::cout << std::endl << "Winner! (" << count << " letters)" << std::endl;
+        auto end = std::chrono::system_clock::now();
+        std::cout << std::endl << "Winner! (" << count << " letters)"
+                  << std::endl << "in " << (end - now).count() / 1000000. << "s" << std::endl;
         return 0;
     }
 }

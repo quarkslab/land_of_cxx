@@ -240,4 +240,30 @@ code!
 We're almost done with this game. The last level adds some bells and whistle to
 this already great game ;-)
 
+Level 4
+=======
 
+To make DDF more challenging, let's add a chronometer so that you can strive to
+beat your own speed record! Timing utilities are available in the ``<chrono>``
+header. It's a very rich header, but we'll only use the
+``std::chrono::system_clock::now()`` function. The chaining of ``::`` is used
+because of nested *namespaces* and static member functions: we'll be using the
+``now`` member function from the ``system_clock`` class from the ``chrono``
+namespace from the ``std`` namespace.
+
+When we don't want to bother with the return type of a function, it's possible
+in C++ to use the ``auto`` keyword. It will automatically match the type of the
+*right hand side* of the assignment::
+
+    auto now = std::chrono::system_clock::now();
+
+If we add a similar statement at the end of the game::
+
+    auto end = std::chrono::system_clock::now();
+
+We can finally count the elapsed time, in second::
+
+    auto duration = (end - now).count() / 1000000.;
+
+And eventually print it to the standard output. This last part concludes this
+DDF game, now, let the finger dance!
