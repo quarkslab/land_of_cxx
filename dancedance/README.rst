@@ -170,3 +170,74 @@ have noticed two different kinds of comments:
     * multi-line comments, enclosed between ``/*`` and ``*/``.
 
 And if you are really curious concerning how we'll end this game, jump to level 3!
+
+Level 3
+=======
+
+In DDF, the user sings a melody with its finger. The melody is a suite of
+chars, so a *string* is suitable to store them. The standard library defines
+the ``std::string`` type in the ``<string>`` header. It can be initialized from
+a string literal, as in::
+
+    std::string melody = "ddf is fun";
+
+If we are sure we will never modify it, it is possible to tell it so to the
+compiler, using the ``const`` qualifier::
+
+    const std::string melody = "ddf is fun";
+
+Once the variable is declared, we can *iterate* over each of its element using a *range based for loop*::
+
+    for(char note : melody) {
+        ...
+    }
+
+which associates the ``note`` variable of type ``char`` to each element of the
+``std::string``. The loop *body* is roughly the main as the one before::
+
+    std::cout << note;
+    char in;
+    std::cin >> in;
+    if(in != note) {
+        break;
+    }
+
+The ``break`` instructions means we end the loop before reaching the end of the
+iterated variable. In order to record whether we ended the loop because of a
+``break`` or because we reached the end of the *melody*, we'll use a counter
+that counts (!) the number of loop trip, and is set to zero when the player
+mistypes a note::
+
+    size_t counter = 0;
+    ...
+    if(in != note) {
+        count = 0;
+        break;
+    }
+    else {
+        ++count;
+    }
+
+Where ``size_t`` is a kind of unsigned integers... The error handling is pretty
+straight forward::
+
+    // error handling
+    if(count == 0) {
+        std::cerr << std::endl << "Looser!" << std::endl;
+        return 1;
+    }
+
+We'll use the ability of ``std::cout`` to seamlessly print integers in the win report::
+
+    else {
+        std::cout << std::endl << "Winner! (" << count << " letters)" << std::endl;
+        return 0;
+    }
+
+Of course, it is important to keep a ``TermiOS`` variable somewhere in the
+code!
+
+We're almost done with this game. The last level adds some bells and whistle to
+this already great game ;-)
+
+

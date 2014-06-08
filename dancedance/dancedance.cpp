@@ -1,25 +1,42 @@
 #include "dancedance_term.hpp"
 
 #include <iostream>
+#include <string>
 
 
 int main() {
     std::cout << "--<< Dance Dance Fingers >>--" << std::endl;
 
-    std::cout << "Strike the 'h' key:";
+    // melody to type with your finger
+    const std::string melody = "ddfisfun";
 
-    char input;
+    // number of notes successfully typed
+    // set to 0 in case of error
+    size_t count = 0;
     {
         TermiOS tos;
-        std::cin >> input;
+        // let's echo the notes and check the user types them correctly
+        for(char note : melody) {
+            std::cout << note;
+            char in;
+            std::cin >> in;
+            if(in != note) {
+                count = 0;
+                break;
+            }
+            else {
+                ++count;
+            }
+        }
     }
 
-    if(input == 'h') {
-        std::cout << std::endl << "Well done!" << std::endl;
-        return 0;
+    // error handling
+    if(count == 0) {
+        std::cerr << std::endl << "Looser!" << std::endl;
+        return 1;
     }
     else {
-        std::cerr << std::endl << "No no no!" << std::endl;
-        return 1;
+        std::cout << std::endl << "Winner! (" << count << " letters)" << std::endl;
+        return 0;
     }
 }
