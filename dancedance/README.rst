@@ -105,3 +105,68 @@ It's now time to use a C-style trick to put the terminal in raw mode, more
 about this in level 2!
 
 
+Level 2
+=======
+
+It's a pain in the ``***`` that the terminal only flushes once a new line is
+filled. For the great DDF game, we need to interact on a char-based stream,
+without the terminal even echoing the key we strike.
+
+There is a standard way to communicate with the terminal and change its
+behavior, but it uses a C interface. Fortunately, C++ code can use any C code
+or header. The header is ``<termios.h>`` and the functions we need are
+``tcgetattr(3)``, ``tcsetattr(3)`` and ``cfmakeraw(3)``. The first gets the
+state of the terminal, the second changes it and the third creates the
+attributes needed to use the *raw mode*.
+
+It's a bit soon to understand how we use these functions, so let's use the code
+from ``dancedance_term.cpp``. To do so, we first include the interface from
+``dancedance_term.hpp``, using quotes ``#include "..."`` to tell the compiler
+we are using a local header, as opposed to system header that use ``#include
+<...>``::
+
+    #include "dancedance_term.hpp"
+
+This header defines a new type, ``TermiOS``, that behaves as follows:
+
+    * when a variable of type ``TermiOS`` is created, the terminal is set in
+      raw mode;
+
+    * when a variable of type ``TermiOS`` is deleted, the terminal is set back
+      to its original mode.
+
+The implementation is in ``dancedance_term.cpp`` that has been added to the Makefile.
+
+In C++, a variable lives from its definition to the end of current block -- a
+block is usually associated to a single instruction as in::
+
+    if(1)
+        something(); // this is instruction is a one-line block
+
+or to a pair of brackets, as in::
+
+    {
+        something();
+        else();
+    }
+
+It is a common idiom to associate begin/end behavior to a variable, using the
+*constructor* to define the begin behavior, and the *destructor* to define the
+end behavior. It's called *Resource Acquisition Is Initialization*.
+
+In our case, we can use it to set the term in raw mode during char input::
+
+    char input;
+    {
+        TermiOS tos;
+        std::cin >> input;
+    }
+
+If you are curious enough, you had a look to ``dancedance_term.hpp``. You may
+have noticed two different kinds of comments:
+
+    * one line comments, starting with a ``//`` and ending with the line;
+
+    * multi-line comments, enclosed between ``/*`` and ``*/``.
+
+And if you are really curious concerning how we'll end this game, jump to level 3!
