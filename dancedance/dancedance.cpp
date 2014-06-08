@@ -2,5 +2,18 @@
 
 int main() {
     std::cout << "--<< Dance Dance Fingers >>--" << std::endl;
-    return 0;
+
+    std::cout << "Strike the 'h' key:";
+
+    char input;
+    std::cin >> input;
+
+    if(input == 'h') {
+        std::cout << std::endl << "Well done!" << std::endl;
+        return 0;
+    }
+    else {
+        std::cerr << std::endl << "No no no!" << std::endl;
+        return 1;
+    }
 }
