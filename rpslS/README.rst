@@ -77,3 +77,45 @@ The ``static`` qualifer means the function is local to the compilation unit. It
 cannot be used outside of it.
 
 Let's jump to ``rpslS/level1`` to start the real game coding!
+
+Level 1
+=======
+
+It is necessary to convert the string from the CLI to an integer. The function
+to do so is ``std::stoi`` from ``<string>``::
+
+    int nb_round = std::stoi(argv[1]);
+
+Let's just verify the user did not provide a non-positive value::
+
+    if(nb_round <= 0) {
+        return usage(argv[0]);
+    }
+
+See how useful it was to put the usage printing into a function? Code reuse!
+
+We need to extra integers to count the score of the player and the socre of the
+AI. It is possible to declare multiple variables in a row, using::
+
+    size_t your_score = 0,
+           ai_score = 0;
+
+``size_t`` means a (plateform-dependant) unsigned integer large enough to count
+all bytes in memory. This should be enough :-)
+
+The main loop of the game might look like this::
+
+    while(nb_round) {
+        /* do some stuff */
+        --nb_round;
+    }
+
+And ends as::
+
+   std::cout << "Your score: " << your_score << std::endl
+             << "AI score:   " << ai_score << std::endl;
+
+Note the use of the prefix ``--`` operator, which means decrease the value of
+``nb_round`` by one and return the new value.
+
+We'll start to model the game in next level. Step forward to ``rpslS/level2``!
