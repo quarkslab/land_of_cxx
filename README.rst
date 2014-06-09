@@ -13,6 +13,9 @@ Available tutorials:
 :WALDO: A tutorial to learn about basic C++ features. The fun begins in branch
         ``waldo/intro``.
 
+:RPSLS: Rock-paper-scissors-lizard-Spock. A tutorial to learn about basic data
+        structures. The fun begins in branch ``rpslS/intro``.
+
 :ORC: A tutorial to learn about C++11 features. The fun begins in branch
       ``orc/intro``.
 
