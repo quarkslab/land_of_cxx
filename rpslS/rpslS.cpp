@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <array>
+#include <random>
 
 enum class Weapon {
     ROCK,
@@ -39,6 +40,23 @@ std::array< std::array< Status, 5>, 5> Matrix {
     }
 };
 
+class AI {
+    std::default_random_engine _rengine;
+    std::uniform_int_distribution<int> _uniform_dist;
+
+    public:
+
+    AI() :
+        _rengine(std::random_device()()),
+        _uniform_dist(0,4)
+    {
+    }
+
+    Weapon weapon() {
+        return static_cast<Weapon>(_uniform_dist(_rengine));
+    }
+};
+
 static
 int usage(char const *progname) {
     std::cerr << "usage: " << progname << " <positive_number>" << std::endl;
@@ -59,6 +77,9 @@ int main(int argc, char * argv[]) {
     /* main event loop */
     size_t your_score = 0,
            ai_score = 0;
+
+    AI ai;
+
     while(nb_round) {
         /* do some stuff */
         Weapon your_weapon;
@@ -66,7 +87,7 @@ int main(int argc, char * argv[]) {
         std::cin >> your_weapon;
         std::cin.ignore(1);
 
-        Weapon ai_weapon = Weapon::ROCK; // always the same!
+        Weapon ai_weapon = ai.weapon();
         Status status = Matrix[static_cast<int>(your_weapon)][static_cast<int>(ai_weapon)];
 
         switch(status) {

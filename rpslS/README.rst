@@ -228,3 +228,51 @@ between the ``Weapon`` type and the ``int`` type. As stated before, using an
 The ``switch`` just updates the score depending on the status. It's now time to
 create a smarter AI... in next level!
 
+Level 3
+=======
+
+An easy way to get a not-too-dumb AI is to make an AI that always chooses its
+weapon at random. To do so we'll use the ``<random>`` header, ad we'll define a
+very simple class::
+
+    class AI {
+        std::default_random_engine _rengine;
+        std::uniform_int_distribution<int> _uniform_dist;
+
+        public:
+
+        AI() :
+            _rengine(std::random_device()()),
+            _uniform_dist(0,4)
+        {
+        }
+    };
+
+This small ``class`` defines two ``private`` (the default) fields used for
+random number generation, and a ``public`` constructor. A constructor is a
+special *member function* used to initialize the object. Whenever a variable is
+created, its constructor is called. Here we are just defining the *default
+constructor*, the constructor that takes no arguments.
+``std::uniform_int_distribution<int>`` is a random number adaptor, that takes
+the source of randomness ``std::default_random_engine`` and returns a number
+between ``0`` and ``4`` included each time it is called.
+
+To call  for a weapon, let's define a ``weapon`` member function::
+
+    Weapon weapon() {
+        return static_cast<Weapon>(_uniform_dist(_rengine));
+    }
+
+Using the ``int`` to ``Weapon`` explicit conversion, we just draw a random
+integer and convert it to the relevant ``Weapon``.
+
+If we instantiate the AI, using::
+
+    AI ai;
+
+We can now use it in the core loop::
+
+    Weapon ai_weapon = ai.weapon();
+
+Which makes the game much more interesting! There are still a few other thing
+to clean up, but that's for the next level!
