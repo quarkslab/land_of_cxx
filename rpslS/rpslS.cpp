@@ -11,6 +11,8 @@ enum class Weapon {
     SPOCK
 };
 
+/* Weapon -> stream */
+struct BadWeapon {};
 std::istream& operator>>(std::istream& is, Weapon& w) {
     char c;
     is >> c;
@@ -20,8 +22,18 @@ std::istream& operator>>(std::istream& is, Weapon& w) {
         case 's': w = Weapon::SCISSOR; break;
         case 'l': w = Weapon::LIZARD; break;
         case 'S': w = Weapon::SPOCK; break;
+		default:  throw BadWeapon();
     };
     return is;
+}
+std::ostream& operator<<(std::ostream& os, Weapon w) {
+    switch(w) {
+        case Weapon::ROCK: return os << "rock";
+        case Weapon::PAPER: return os << "paper";
+        case Weapon::SCISSOR: return os << "scissor";
+        case Weapon::LIZARD: return os << "lizard";
+        case Weapon::SPOCK: return os << "Spock";
+    };
 }
 
 enum class Status {
@@ -83,11 +95,21 @@ int main(int argc, char * argv[]) {
     while(nb_round) {
         /* do some stuff */
         Weapon your_weapon;
-        std::cout << "(r)ock-(p)aper-(s)cissors-(l)izard-(S)pock? ";
-        std::cin >> your_weapon;
-        std::cin.ignore(1);
+        bool ok = false;
+        do {
+            try {
+                std::cout << "(r)ock-(p)aper-(s)cissors-(l)izard-(S)pock? ";
+                std::cin >> your_weapon;
+                std::cin.ignore(1);
+                ok = true;
+            }
+            catch(BadWeapon) {
+            }
+        } while(not ok);
 
         Weapon ai_weapon = ai.weapon();
+        std::cout << "AI: " << ai_weapon << std::endl;
+
         Status status = Matrix[static_cast<int>(your_weapon)][static_cast<int>(ai_weapon)];
 
         switch(status) {
@@ -102,8 +124,8 @@ int main(int argc, char * argv[]) {
             case Status::DRAW:
                 ;
         }
-       std::cout << "Your score: " << your_score << std::endl
-                 << "AI score:   " << ai_score << std::endl;
+        std::cout << "Your score: " << your_score << std::endl
+                  << "AI score:   " << ai_score << std::endl;
     }
     return 0;
 }

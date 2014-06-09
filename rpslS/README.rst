@@ -276,3 +276,71 @@ We can now use it in the core loop::
 
 Which makes the game much more interesting! There are still a few other thing
 to clean up, but that's for the next level!
+
+Level 4
+=======
+
+Something can go bad in our implementation: in the stream to ``Weapon``
+conversion, if the user presses a forbidden key, nothing happens. There is an
+*exception* mechanism in C++ to do so. First we define a new Type to hold our
+exception::
+
+    struct BadWeapon {};
+
+Only the type itself matters, so it has a dummy body, and we make it a
+``struct`` instead of a ``class``. In a ``struct`` everything is ``public`` by
+default while it is ``private`` in a class. To state an error, one uses the
+``throw`` keyword::
+
+	switch(c) {
+		case 'r': w = Weapon::ROCK; break;
+		case 'p': w = Weapon::PAPER; break;
+		case 's': w = Weapon::SCISSOR; break;
+		case 'l': w = Weapon::LIZARD; break;
+		case 'S': w = Weapon::SPOCK; break;
+		default:  throw BadWeapon();
+	};
+
+The ``default:`` label is used when a value matches no ``case``. Upon a
+``raise``, the exception traverses the call stack until it reaches a ``try
+{...} catch (...)`` block. In our case, it looks like::
+
+    Weapon your_weapon;
+    bool ok = false;
+    do {
+    	try {
+    		std::cout << "(r)ock-(p)aper-(s)cissors-(l)izard-(S)pock? ";
+    		std::cin >> your_weapon;
+    		std::cin.ignore(1);
+    		ok = true;
+    	}
+    	catch(BadWeapon) {
+    	}
+    } while(not ok);
+
+The ``catch`` block is parametrized by a type, which is the type of the caught
+exception. That way, if an exception that is not a ``BadWeapon`` is met, it is
+not caught, and thus forwarded at call site. The ``do while`` loop is just a
+way to repeatedly asks for a value.
+
+A last point to make the game more entertaining is to display the weapon played
+by the AI. To do so we use::
+
+    std::cout << "AI: " << ai_weapon << std::endl;
+
+This code snippet needs a proper overload of ``<<``, as in::
+
+    std::ostream& operator<<(std::ostream& os, Weapon w) {
+        switch(w) {
+            case Weapon::ROCK: return os << "rock";
+            case Weapon::PAPER: return os << "paper";
+            case Weapon::SCISSOR: return os << "scissor";
+            case Weapon::LIZARD: return os << "lizard";
+            case Weapon::SPOCK: return os << "Spock";
+        };
+    }
+
+There is no need for a ``default`` case thanks to the ``enum class``!
+
+That's the end for Rock-paper-scissors-lizard-Spock, but feel free to code a
+smarter AI!
