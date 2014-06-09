@@ -1,5 +1,43 @@
 #include <iostream>
 #include <string>
+#include <array>
+
+enum class Weapon {
+    ROCK,
+    PAPER,
+    SCISSOR,
+    LIZARD,
+    SPOCK
+};
+
+std::istream& operator>>(std::istream& is, Weapon& w) {
+    char c;
+    is >> c;
+    switch(c) {
+        case 'r': w = Weapon::ROCK; break;
+        case 'p': w = Weapon::PAPER; break;
+        case 's': w = Weapon::SCISSOR; break;
+        case 'l': w = Weapon::LIZARD; break;
+        case 'S': w = Weapon::SPOCK; break;
+    };
+    return is;
+}
+
+enum class Status {
+    LOOSE,
+    DRAW,
+    WIN
+};
+
+std::array< std::array< Status, 5>, 5> Matrix {
+    {
+        /* Rock */      { Status::DRAW, Status::LOOSE, Status::WIN, Status::WIN, Status::LOOSE },
+        /* Paper */     { Status::WIN, Status::DRAW, Status::LOOSE, Status::LOOSE, Status::WIN },
+        /* Scissors */  { Status::LOOSE, Status::WIN, Status::DRAW, Status::WIN, Status::LOOSE },
+        /* Lizard */    { Status::LOOSE, Status::WIN, Status::LOOSE, Status::DRAW, Status::WIN },
+        /* Spock */     { Status::WIN, Status::LOOSE, Status::WIN, Status::LOOSE, Status::DRAW }
+    }
+};
 
 static
 int usage(char const *progname) {
@@ -23,9 +61,28 @@ int main(int argc, char * argv[]) {
            ai_score = 0;
     while(nb_round) {
         /* do some stuff */
-        --nb_round;
+        Weapon your_weapon;
+        std::cout << "(r)ock-(p)aper-(s)cissors-(l)izard-(S)pock? ";
+        std::cin >> your_weapon;
+        std::cin.ignore(1);
+
+        Weapon ai_weapon = Weapon::ROCK; // always the same!
+        Status status = Matrix[static_cast<int>(your_weapon)][static_cast<int>(ai_weapon)];
+
+        switch(status) {
+            case Status::WIN:
+                ++your_score;
+                --nb_round;
+                break;
+            case Status::LOOSE:
+                ++ai_score;
+                --nb_round;
+                break;
+            case Status::DRAW:
+                ;
+        }
+       std::cout << "Your score: " << your_score << std::endl
+                 << "AI score:   " << ai_score << std::endl;
     }
-   std::cout << "Your score: " << your_score << std::endl
-             << "AI score:   " << ai_score << std::endl;
     return 0;
 }

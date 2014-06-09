@@ -119,3 +119,112 @@ Note the use of the prefix ``--`` operator, which means decrease the value of
 ``nb_round`` by one and return the new value.
 
 We'll start to model the game in next level. Step forward to ``rpslS/level2``!
+
+Level 2
+=======
+
+There are 5 types of weapons in rpslS. An enumeration of stuff can be encoded
+using an enumeration::
+
+    enum class Weapon {
+        ROCK,
+        PAPER,
+        SCISSOR,
+        LIZARD,
+        SPOCK
+    };
+
+An enumeration just defines a few identifiers, associated to integer values.
+The default is to start at 0 and then to increase the values by one. Said
+otherwise, ``ROCK == 0``, ``PAPER == 1`` etc.
+
+Note the ``class`` qualifier, which means that the conversion from or to
+integer is not automatic.
+
+A similar enumeration can be used for a weapon clash::
+
+    enum class Status {
+        LOOSE,
+        DRAW,
+        WIN
+    };
+
+The core of the game is the status matrix. Using two ``Weapons`` (and thus
+integers thanks to the conversion to ints), it makes it easy to access the
+clash status. To do so, one can use a nested static array structure. A
+fixed-length array type is declared in ``<array>``. It is a parameteric type
+stated as ``std::array<Type, NumberOfElements>``. In our case, we get::
+
+    std::array< std::array< Status, 5>, 5> Matrix {
+        {
+            /* Rock */      { Status::DRAW, Status::LOOSE, Status::WIN, Status::WIN, Status::LOOSE },
+            /* Paper */     { Status::WIN, Status::DRAW, Status::LOOSE, Status::LOOSE, Status::WIN },
+            /* Scissors */  { Status::LOOSE, Status::WIN, Status::DRAW, Status::WIN, Status::LOOSE },
+            /* Lizard */    { Status::LOOSE, Status::WIN, Status::LOOSE, Status::DRAW, Status::WIN },
+            /* Spock */     { Status::WIN, Status::LOOSE, Status::WIN, Status::LOOSE, Status::DRAW }
+        }
+    };
+
+Note the use of bracket for the initializations, instead of the equal sign. That's *uniform initialization*!
+
+We now need to type in our choice of weapon. We want something like this in the main loop::
+
+    Weapon your_weapon;
+    std::cout << "(r)ock-(p)aper-(s)cissors-(l)izard-(S)pock? ";
+    std::cin >> your_weapon;
+
+Eventually, one should add ``std::cin.ignore(1)`` to drop the newline character.
+
+Trying to compile the above code results in an error because the compiler
+doesn't know how to read a ``Weapon`` from a stream. Let's tell him! This is
+done by *overloading* the ``>>`` operator::
+
+    std::istream& operator>>(std::istream& is, Weapon& w) {
+        char c;
+        is >> c;
+        switch(c) {
+            case 'r': w = Weapon::ROCK; break;
+            case 'p': w = Weapon::PAPER; break;
+            case 's': w = Weapon::SCISSOR; break;
+            case 'l': w = Weapon::LIZARD; break;
+            case 'S': w = Weapon::SPOCK; break;
+        };
+        return is;
+    }
+
+Note that ``w`` is passed by *reference*, i.e. modifying ``w`` in the function
+modifies the call site. A ``switch`` is used to traverse the possible
+conversions. the ``break`` are mandatory to prevent the ``switch`` to go to the
+next ``case``.
+
+The main loop can now be written as::
+
+    Weapon your_weapon;
+    std::cout << "(r)ock-(p)aper-(s)cissors-(l)izard-(S)pock? ";
+    std::cin >> your_weapon;
+    std::cin.ignore(1);
+
+    Weapon ai_weapon = Weapon::ROCK; // always the same!
+    Status status = Matrix[static_cast<int>(your_weapon)][static_cast<int>(ai_weapon)];
+
+    switch(status) {
+        case Status::WIN:
+            ++your_score;
+            --nb_round;
+            break;
+        case Status::LOOSE:
+            ++ai_score;
+            --nb_round;
+            break;
+        case Status::DRAW:
+            ;
+    }
+
+What happens in this peice of code? Using your weapon and AI's, it is possible
+to index ``Matrix``. ``static_cast<int>`` is used to perform the conversion
+between the ``Weapon`` type and the ``int`` type. As stated before, using an
+``enum class`` makes the use of a cast mandatory.
+
+The ``switch`` just updates the score depending on the status. It's now time to
+create a smarter AI... in next level!
+
