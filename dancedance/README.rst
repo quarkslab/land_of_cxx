@@ -208,7 +208,7 @@ iterated variable. In order to record whether we ended the loop because of a
 that counts (!) the number of loop trip, and is set to zero when the player
 mistypes a note::
 
-    size_t counter = 0;
+    size_t count = 0;
     ...
     if(in != note) {
         count = 0;
