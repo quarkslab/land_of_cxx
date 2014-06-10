@@ -158,7 +158,7 @@ Let's use this randomness to choose which warrior attacks and which one retaliat
                 using std::swap;
                 swap(first, second);
             }
-            first->attack(second);
+            first->attack(*second);
             if(*second)
                 second->attack(*first);
         }
