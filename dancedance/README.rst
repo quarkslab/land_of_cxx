@@ -179,12 +179,12 @@ chars, so a *string* is suitable to store them. The standard library defines
 the ``std::string`` type in the ``<string>`` header. It can be initialized from
 a string literal, as in::
 
-    std::string melody = "ddf is fun";
+    std::string melody = "ddfisfun";
 
 If we are sure we will never modify it, it is possible to tell it so to the
 compiler, using the ``const`` qualifier::
 
-    const std::string melody = "ddf is fun";
+    const std::string melody = "ddfisfun";
 
 Once the variable is declared, we can *iterate* over each of its element using a *range based for loop*::
 
