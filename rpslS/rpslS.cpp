@@ -25,18 +25,18 @@ std::istream& operator>>(std::istream& is, Weapon& w) {
 }
 
 enum class Status {
-    LOOSE,
+    LOSE,
     DRAW,
     WIN
 };
 
 std::array< std::array< Status, 5>, 5> Matrix {
     {
-        /* Rock */      { Status::DRAW, Status::LOOSE, Status::WIN, Status::WIN, Status::LOOSE },
-        /* Paper */     { Status::WIN, Status::DRAW, Status::LOOSE, Status::LOOSE, Status::WIN },
-        /* Scissors */  { Status::LOOSE, Status::WIN, Status::DRAW, Status::WIN, Status::LOOSE },
-        /* Lizard */    { Status::LOOSE, Status::WIN, Status::LOOSE, Status::DRAW, Status::WIN },
-        /* Spock */     { Status::WIN, Status::LOOSE, Status::WIN, Status::LOOSE, Status::DRAW }
+        /* Rock */      { Status::DRAW, Status::LOSE, Status::WIN, Status::WIN, Status::LOSE },
+        /* Paper */     { Status::WIN, Status::DRAW, Status::LOSE, Status::LOSE, Status::WIN },
+        /* Scissors */  { Status::LOSE, Status::WIN, Status::DRAW, Status::WIN, Status::LOSE },
+        /* Lizard */    { Status::LOSE, Status::WIN, Status::LOSE, Status::DRAW, Status::WIN },
+        /* Spock */     { Status::WIN, Status::LOSE, Status::WIN, Status::LOSE, Status::DRAW }
     }
 };
 
@@ -95,7 +95,7 @@ int main(int argc, char * argv[]) {
                 ++your_score;
                 --nb_round;
                 break;
-            case Status::LOOSE:
+            case Status::LOSE:
                 ++ai_score;
                 --nb_round;
                 break;
