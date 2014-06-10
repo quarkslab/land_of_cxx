@@ -42,7 +42,7 @@ int main() {
     else {
         auto end = std::chrono::system_clock::now();
         std::cout << std::endl << "Winner! (" << count << " letters)"
-                  << std::endl << "in " << (end - now).count() / 1000000. << "s" << std::endl;
+                  << std::endl << "in " << std::chrono::duration_cast<std::chrono::milliseconds>(end - now).count()  << "ms" << std::endl;
         return 0;
     }
 }

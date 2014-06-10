@@ -261,9 +261,9 @@ If we add a similar statement at the end of the game::
 
     auto end = std::chrono::system_clock::now();
 
-We can finally count the elapsed time, in second::
+We can finally count the elapsed time, in millisecond::
 
-    auto duration = (end - now).count() / 1000000.;
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - now).count();
 
 And eventually print it to the standard output. This last part concludes this
 DDF game, now, let the finger dance!
