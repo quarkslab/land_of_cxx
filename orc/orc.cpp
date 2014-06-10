@@ -257,8 +257,7 @@ Warrior* pick_race(RaceSelector<Races...>, std::string const& name, std::istream
 }
 
 // pick a random race and create a Warrior from it, named as ``name''
-template < class... Races, template <class...> class RaceSelector,
-           class... Args>
+template < class... Races, class... Args>
 Warrior* pick_random_race(RaceSelector<Races...>, Args const&... args)
 {
     std::array<Warrior *, sizeof...(Races)> challengers{{new Races(args...)...}};
