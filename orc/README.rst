@@ -307,8 +307,7 @@ Let's use template parameters for templates (-::
     template <typename... Races>
     struct RaceSelector {};
 
-    template < class... Races, template <class...> class RaceSelector,
-               class... Args>
+    template < class... Races, class... Args>
     Warrior* pick_random_race(RaceSelector<Races...>, Args const&... args)
     {
         std::array<Warrior *, sizeof...(Races)> challengers{{new Races(args...)...}};
