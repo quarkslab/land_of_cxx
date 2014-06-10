@@ -94,7 +94,7 @@ In case of error, the *error stream* is usually used. It's ``std::cerr`` and
 it's an output stream, so its use is similar to ``std::cout``::
 
     else {
-        std::endl << "Well done!" << std::endl;
+        std::cerr << std::endl << "You failed!" << std::endl;
         return 1;
     }
 
