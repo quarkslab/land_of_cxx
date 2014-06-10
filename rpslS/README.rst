@@ -144,7 +144,7 @@ integer is not automatic.
 A similar enumeration can be used for a weapon clash::
 
     enum class Status {
-        LOOSE,
+        LOSE,
         DRAW,
         WIN
     };
@@ -157,11 +157,11 @@ stated as ``std::array<Type, NumberOfElements>``. In our case, we get::
 
     std::array< std::array< Status, 5>, 5> Matrix {
         {
-            /* Rock */      { Status::DRAW, Status::LOOSE, Status::WIN, Status::WIN, Status::LOOSE },
-            /* Paper */     { Status::WIN, Status::DRAW, Status::LOOSE, Status::LOOSE, Status::WIN },
-            /* Scissors */  { Status::LOOSE, Status::WIN, Status::DRAW, Status::WIN, Status::LOOSE },
-            /* Lizard */    { Status::LOOSE, Status::WIN, Status::LOOSE, Status::DRAW, Status::WIN },
-            /* Spock */     { Status::WIN, Status::LOOSE, Status::WIN, Status::LOOSE, Status::DRAW }
+            /* Rock */      { Status::DRAW, Status::LOSE, Status::WIN, Status::WIN, Status::LOSE },
+            /* Paper */     { Status::WIN, Status::DRAW, Status::LOSE, Status::LOSE, Status::WIN },
+            /* Scissors */  { Status::LOSE, Status::WIN, Status::DRAW, Status::WIN, Status::LOSE },
+            /* Lizard */    { Status::LOSE, Status::WIN, Status::LOSE, Status::DRAW, Status::WIN },
+            /* Spock */     { Status::WIN, Status::LOSE, Status::WIN, Status::LOSE, Status::DRAW }
         }
     };
 
@@ -212,7 +212,7 @@ The main loop can now be written as::
             ++your_score;
             --nb_round;
             break;
-        case Status::LOOSE:
+        case Status::LOSE:
             ++ai_score;
             --nb_round;
             break;
