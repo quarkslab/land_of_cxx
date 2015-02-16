@@ -94,7 +94,7 @@ In case of error, the *error stream* is usually used. It's ``std::cerr`` and
 it's an output stream, so its use is similar to ``std::cout``::
 
     else {
-        std::endl << "Well done!" << std::endl;
+        std::endl << "You failed!" << std::endl;
         return 1;
     }
 
@@ -141,7 +141,7 @@ In C++, a variable lives from its definition to the end of current block -- a
 block is usually associated to a single instruction as in::
 
     if(1)
-        something(); // this is instruction is a one-line block
+        something(); // this instruction is a one-line block
 
 or to a pair of brackets, as in::
 
