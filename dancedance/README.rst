@@ -65,7 +65,7 @@ Write your own banner like this, and jump to level1!
 Level 1
 =======
 
-In text based *interactive* games, one often need to read data from the
+In text based *interactive* games, one often needs to read data from the
 standard input. This is accomplished in C++ using the counterpart of
 ``std::cout``, namely ``std::cin``.
 
@@ -76,7 +76,7 @@ input, use::
     char input;
     std::cin >> input;
 
-Note that most modern terminal only flush to standard input when a new line is
+Note that most modern terminals only flush to standard input when a new line is
 typed (that's the feature that makes line editing possible).
 
 Now ask the user to strike the ``h`` key, using the standard output stream::
@@ -94,7 +94,7 @@ In case of error, the *error stream* is usually used. It's ``std::cerr`` and
 it's an output stream, so its use is similar to ``std::cout``::
 
     else {
-        std::endl << "Well done!" << std::endl;
+        std::cerr << std::endl << "You failed!" << std::endl;
         return 1;
     }
 
@@ -141,7 +141,7 @@ In C++, a variable lives from its definition to the end of current block -- a
 block is usually associated to a single instruction as in::
 
     if(1)
-        something(); // this is instruction is a one-line block
+        something(); // this instruction is a one-line block
 
 or to a pair of brackets, as in::
 
@@ -179,12 +179,12 @@ chars, so a *string* is suitable to store them. The standard library defines
 the ``std::string`` type in the ``<string>`` header. It can be initialized from
 a string literal, as in::
 
-    std::string melody = "ddf is fun";
+    std::string melody = "ddfisfun";
 
 If we are sure we will never modify it, it is possible to tell it so to the
 compiler, using the ``const`` qualifier::
 
-    const std::string melody = "ddf is fun";
+    const std::string melody = "ddfisfun";
 
 Once the variable is declared, we can *iterate* over each of its element using a *range based for loop*::
 
@@ -202,10 +202,10 @@ which associates the ``note`` variable of type ``char`` to each element of the
         break;
     }
 
-The ``break`` instructions means we end the loop before reaching the end of the
+The ``break`` instruction means we end the loop before reaching the end of the
 iterated variable. In order to record whether we ended the loop because of a
 ``break`` or because we reached the end of the *melody*, we'll use a counter
-that counts (!) the number of loop trip, and is set to zero when the player
+that counts (!) the number of loop trips, and is set to zero when the player
 mistypes a note::
 
     size_t count = 0;
@@ -237,7 +237,7 @@ We'll use the ability of ``std::cout`` to seamlessly print integers in the win r
 Of course, it is important to keep a ``TermiOS`` variable somewhere in the
 code!
 
-We're almost done with this game. The last level adds some bells and whistle to
+We're almost done with this game. The last level adds some bells and whistles to
 this already great game ;-)
 
 Level 4
