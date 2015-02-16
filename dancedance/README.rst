@@ -202,10 +202,10 @@ which associates the ``note`` variable of type ``char`` to each element of the
         break;
     }
 
-The ``break`` instructions means we end the loop before reaching the end of the
+The ``break`` instruction means we end the loop before reaching the end of the
 iterated variable. In order to record whether we ended the loop because of a
 ``break`` or because we reached the end of the *melody*, we'll use a counter
-that counts (!) the number of loop trip, and is set to zero when the player
+that counts (!) the number of loop trips, and is set to zero when the player
 mistypes a note::
 
     size_t counter = 0;
@@ -237,7 +237,7 @@ We'll use the ability of ``std::cout`` to seamlessly print integers in the win r
 Of course, it is important to keep a ``TermiOS`` variable somewhere in the
 code!
 
-We're almost done with this game. The last level adds some bells and whistle to
+We're almost done with this game. The last level adds some bells and whistles to
 this already great game ;-)
 
 
