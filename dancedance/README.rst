@@ -266,4 +266,4 @@ We can finally count the elapsed time, in millisecond::
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - now).count();
 
 And eventually print it to the standard output. This last part concludes this
-DDF game, now, let the finger dance!
+DDF game, now, let the fingers dance!
