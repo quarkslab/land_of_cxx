@@ -65,7 +65,7 @@ Write your own banner like this, and jump to level1!
 Level 1
 =======
 
-In text based *interactive* games, one often need to read data from the
+In text based *interactive* games, one often needs to read data from the
 standard input. This is accomplished in C++ using the counterpart of
 ``std::cout``, namely ``std::cin``.
 
@@ -76,7 +76,7 @@ input, use::
     char input;
     std::cin >> input;
 
-Note that most modern terminal only flush to standard input when a new line is
+Note that most modern terminals only flush to standard input when a new line is
 typed (that's the feature that makes line editing possible).
 
 Now ask the user to strike the ``h`` key, using the standard output stream::
