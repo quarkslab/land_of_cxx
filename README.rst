@@ -7,8 +7,8 @@ development of old-school, text-based games.
 
 Available tutorials:
 
-:DDF: Dance Dance Fingers! A tutorial to learn about basic IO features. The fun
-      begins in branch ``dancedance/intro``.
+:DANCE DANCE FINGERS: A tutorial to learn about basic IO features. The fun
+                      begins in branch ``dancedance/intro``.
 
 :WALDO: A tutorial to learn about basic C++ features. The fun begins in branch
         ``waldo/intro``.
