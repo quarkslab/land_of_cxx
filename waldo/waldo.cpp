@@ -1,20 +1,47 @@
-#include <iostream>  // for std::cout
-#include <random>    // for std::random_device and the likes
-#include <string>    // for std::string
-#include <fstream>   // for std::ifstream
-#include <algorithm> // for std::count and std::find
-#include <stdexcept> // for std::runtime_error
+/* .~= Waldo =~.
+ *
+ * Where is Waldo is a famous book series where you try to find a small guy
+ * wearing striped clothes named Waldo in a large image full of details. The
+ * goal of this game will be to print an (ASCII, of course) image loaded from a
+ * file, with a slight change: one of the character of the input image will be
+ * changed to a `W', like Waldo. Then the player can use her eagle-eye skill to
+ * find it!
+ *
+ * For instance the following ASCII image
+ *
+ *  o(^_-)O <3 \(^_^)/
+ *
+ * can be turned into
+ *
+ *  o(^_-)O <W \(^_^)/
+ *
+ * The updated character can be any non black character!
+ *
+ * To solve this exercise, you can use:
+ *
+ * - std::runtime_error
+ * - std::find
+ * - std::all_of
+ * - std::random_device
+ * - std::default_random_engine
+ * - std::uniform_int_distribution
+ * - std::is_blank
+ */
 
-// An exception specialized fro Waldo Errors
-struct InvalidWaldo : std::runtime_error {
-    InvalidWaldo(char const* what) : std::runtime_error(what)
-    {
-    }
+#include <iostream>
+#include <random>
+#include <string>
+#include <fstream>
+#include <algorithm>
+
+// An exception specialized for Waldo Errors
+// TODO: make it inherit from a standard exception
+struct InvalidWaldo {
 };
 
 // Handle loading and display of Waldo picture
 class Waldo {
-    std::string _picture;  //< the picture itself
+    std::string picture_;  //< the picture itself
 
     public:
 
@@ -22,7 +49,7 @@ class Waldo {
     Waldo(std::string const& path);
 
     // common accessors
-    std::string const& str() const { return _picture; }
+    std::string const& str() const { return picture_; }
 
     static const char waldo = 'w';
 
@@ -40,34 +67,33 @@ const char Waldo::waldo;
 Waldo::Waldo(std::string const & path)
 {
     std::ifstream ifs(path.c_str());
-    _picture = std::string{std::istreambuf_iterator<char>{ifs}, std::istreambuf_iterator<char>{}};
+    // TODO: convert the file to a string
+    picture_ = "I am waldo";
     check_validity();
     hide_waldo();
 }
 
 // check a few stuff on the picture and raise if needed
 void Waldo::check_validity() const {
-    if(std::count(_picture.begin(), _picture.end(), '\n') == 0)
-        throw InvalidWaldo("not even a single line");
-    if(std::find(_picture.begin(), _picture.end(), waldo) != _picture.end())
-        throw InvalidWaldo("Waldo symbol already in input file");
-    if(std::all_of(_picture.begin(), _picture.end(), std::isblank))
-        throw InvalidWaldo("input file full of blank");
+    if(std::count(picture_.begin(), picture_.end(), '\n') == 0)
+        // TODO: add extra information to the exception
+        throw InvalidWaldo();
+    // TODO: check whether a waldo character already exists in the picture
+    // TODO: check the picture is not blank
 }
 
 // modify the string `from' to hide a Waldo in a non-space location
 void Waldo::hide_waldo() {
 
-    std::random_device rd;
-    std::default_random_engine rnd(rd());
-    std::uniform_int_distribution<size_t> uniform_dist(0, _picture.size() - 1);
+    // FIXME: choose a random position
 
     // try as long as we can until we find a non-space location
-    size_t pos;
+    size_t pos = -1;;
     do {
-        pos = uniform_dist(rnd);
-    } while(std::isblank(_picture[pos]));
-    _picture[pos] = waldo;
+        pos += 1;
+    // FIXME: check for any kind of blank character
+    } while(picture_[pos] == ' ');
+    picture_[pos] = waldo;
 }
 
 // the fun starts here
