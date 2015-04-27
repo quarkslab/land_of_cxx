@@ -1,0 +1,20 @@
+@@@@@@@@@@@@
+@        O @
+@          @
+@          @
+@#         @
+@         #@
+@          @
+@          @
+@          @
+@          @
+@I         @
+@@@@@@@@@@@@
+
+==========
+How do I go from I to O? [hjkl]
+curr pos is: 9,0
+curr pos is: 4,0
+curr pos is: 4,8
+curr pos is: 0,8
+gotcha!
