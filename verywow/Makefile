@@ -4,7 +4,7 @@ CXXFLAGS=-std=c++11 -g -Wall -Wextra
 all:$(TARGETS)
 
 clean:
-	$(RM) *.o $(TARGETS)
+	$(RM) $(TARGETS)
 
 check:all
 	@test "`printf 'You are very smart!' | solution/$(TARGET)`" = 'Wow, so smart'

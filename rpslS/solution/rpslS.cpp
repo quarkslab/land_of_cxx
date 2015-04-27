@@ -53,19 +53,19 @@ const Status Matrix [][5] = {
 };
 
 class AI {
-    std::default_random_engine _rengine;
-    std::uniform_int_distribution<int> _uniform_dist;
+    std::default_random_engine rengine_;
+    std::uniform_int_distribution<int> uniform_dist_;
 
     public:
 
     AI() :
-        _rengine(std::random_device()()),
-        _uniform_dist(0, std::extent<decltype(Matrix)>::value - 1)
+        rengine_(std::random_device()()),
+        uniform_dist_(0, std::extent<decltype(Matrix)>::value - 1)
     {
     }
 
     Weapon weapon() {
-        return static_cast<Weapon>(_uniform_dist(_rengine));
+        return static_cast<Weapon>(uniform_dist_(rengine_));
     }
 };
 

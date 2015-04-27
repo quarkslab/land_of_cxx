@@ -14,7 +14,7 @@ struct InvalidWaldo : std::runtime_error {
 
 // Handle loading and display of Waldo picture
 class Waldo {
-    std::string _picture;  //< the picture itself
+    std::string picture_;  //< the picture itself
 
     public:
 
@@ -22,7 +22,7 @@ class Waldo {
     Waldo(std::string const& path);
 
     // common accessors
-    std::string const& str() const { return _picture; }
+    std::string const& str() const { return picture_; }
 
     static const char waldo = 'w';
 
@@ -40,18 +40,18 @@ const char Waldo::waldo;
 Waldo::Waldo(std::string const & path)
 {
     std::ifstream ifs(path.c_str());
-    _picture = std::string{std::istreambuf_iterator<char>{ifs}, std::istreambuf_iterator<char>{}};
+    picture_ = std::string{std::istreambuf_iterator<char>{ifs}, std::istreambuf_iterator<char>{}};
     check_validity();
     hide_waldo();
 }
 
 // check a few stuff on the picture and raise if needed
 void Waldo::check_validity() const {
-    if(std::count(_picture.begin(), _picture.end(), '\n') == 0)
+    if(std::count(picture_.begin(), picture_.end(), '\n') == 0)
         throw InvalidWaldo("not even a single line");
-    if(std::find(_picture.begin(), _picture.end(), waldo) != _picture.end())
+    if(std::find(picture_.begin(), picture_.end(), waldo) != picture_.end())
         throw InvalidWaldo("Waldo symbol already in input file");
-    if(std::all_of(_picture.begin(), _picture.end(), std::isblank))
+    if(std::all_of(picture_.begin(), picture_.end(), std::isblank))
         throw InvalidWaldo("input file full of blank");
 }
 
@@ -60,14 +60,14 @@ void Waldo::hide_waldo() {
 
     std::random_device rd;
     std::default_random_engine rnd(rd());
-    std::uniform_int_distribution<size_t> uniform_dist(0, _picture.size() - 1);
+    std::uniform_int_distribution<size_t> uniform_dist(0, picture_.size() - 1);
 
     // try as long as we can until we find a non-space location
     size_t pos;
     do {
         pos = uniform_dist(rnd);
-    } while(std::isblank(_picture[pos]));
-    _picture[pos] = waldo;
+    } while(std::isblank(picture_[pos]));
+    picture_[pos] = waldo;
 }
 
 // the fun starts here

@@ -5,7 +5,7 @@ CXXFLAGS=-std=c++11 -g -Wall -Wextra
 all:$(TARGETS)
 
 clean:
-	$(RM) *.o $(TARGETS)
+	$(RM) $(TARGETS)
 
 check:all
 	@solution/$(TARGET) lena-small.pgm | cmp lena-small.txt -
