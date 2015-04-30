@@ -75,6 +75,7 @@ Waldo::Waldo(std::string const & path)
 
 // check a few stuff on the picture and raise if needed
 void Waldo::check_validity() const {
+    // TODO: move each check to a member function
     if(std::count(picture_.begin(), picture_.end(), '\n') == 0)
         // TODO: add extra information to the exception
         throw InvalidWaldo();

@@ -30,6 +30,11 @@ class Waldo {
     // helper functions
     void hide_waldo();
     void check_validity() const;
+
+    private:
+    void at_least_a_line() const;
+    void no_waldo() const;
+    void at_least_a_symbol() const;
 };
 
 const char Waldo::waldo;
@@ -47,10 +52,20 @@ Waldo::Waldo(std::string const & path)
 
 // check a few stuff on the picture and raise if needed
 void Waldo::check_validity() const {
+    at_least_a_line();
+    no_waldo();
+    at_least_a_symbol();
+}
+
+void Waldo::at_least_a_line() const {
     if(std::count(picture_.begin(), picture_.end(), '\n') == 0)
         throw InvalidWaldo("not even a single line");
+}
+void Waldo::no_waldo() const {
     if(std::find(picture_.begin(), picture_.end(), waldo) != picture_.end())
         throw InvalidWaldo("Waldo symbol already in input file");
+}
+void Waldo::at_least_a_symbol() const {
     if(std::all_of(picture_.begin(), picture_.end(), std::isblank))
         throw InvalidWaldo("input file full of blank");
 }
