@@ -7,7 +7,7 @@
 
 // An exception specialized fro Waldo Errors
 struct InvalidWaldo : std::runtime_error {
-    InvalidWaldo(char const* what) : std::runtime_error(what)
+    InvalidWaldo(char const what[] = "") : std::runtime_error(what)
     {
     }
 };
