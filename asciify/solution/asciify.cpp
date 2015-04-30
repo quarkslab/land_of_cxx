@@ -48,8 +48,12 @@ std::vector<std::vector<unsigned char>> read_pgm(std::string const& filename) {
 void ascii_dump(std::vector<std::vector<unsigned char>>const& data) {
   for(auto const& line: data) {
     for(auto value: line) {
-      if(value < 128)
+      if(value < 64)
         std::cout << ' ';
+      else if (value < 128)
+        std::cout << '.';
+      else if (value < 192)
+        std::cout << '-';
       else
         std::cout << '#';
     }
