@@ -44,13 +44,13 @@ enum class Status {
     WIN
 };
 
-const Status Matrix [][5] = {
+std::array<std::array<Status, 5> const, 5> const Matrix = {{
     /* Rock */      { Status::DRAW, Status::LOSE, Status::WIN, Status::WIN, Status::LOSE },
     /* Paper */     { Status::WIN, Status::DRAW, Status::LOSE, Status::LOSE, Status::WIN },
     /* Scissors */  { Status::LOSE, Status::WIN, Status::DRAW, Status::WIN, Status::LOSE },
     /* Lizard */    { Status::LOSE, Status::WIN, Status::LOSE, Status::DRAW, Status::WIN },
     /* Spock */     { Status::WIN, Status::LOSE, Status::WIN, Status::LOSE, Status::DRAW }
-};
+}};
 
 class AI {
     std::default_random_engine rengine_;
@@ -60,7 +60,7 @@ class AI {
 
     AI() :
         rengine_(std::random_device()()),
-        uniform_dist_(0, std::extent<decltype(Matrix)>::value - 1)
+        uniform_dist_(0, Matrix.size() - 1)
     {
     }
 
