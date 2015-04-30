@@ -6,67 +6,127 @@
 #include <string>
 #include <limits>
 #include <iterator>
+#include <algorithm>
 
-struct Screen {
+/* Base class for all tiles
+ *
+ * Implements the default behavior of a tile, i.e. an empty tile
+ */
+struct Tile {
+  virtual char str() const = 0;
+  virtual bool blocks() const { return false; }
+  virtual bool wins() const { return false;}
+};
+
+/* Regular empty tile
+ */
+struct Empty : Tile {
+  static constexpr char value = ' ';
+  virtual char str() const override { return value; }
+};
+
+/* A blocking tile
+ */
+struct Wall : Tile {
+  static constexpr char value = '#';
+  virtual char str() const override { return value; }
+  virtual bool blocks() const override { return true; }
+};
+
+/* Borders are blocking tiles with a different rendering
+ */
+struct Border : Wall {
+  static constexpr char value = '@';
+  virtual char str() const override { return value; }
+};
+
+/* Exit tile are non blocking (you must stop on them)
+ * they make you win!
+ */
+struct Exit : Empty {
+  static constexpr char value = 'O';
+  virtual char str() const override { return value; }
+  virtual bool wins() const override { return true;}
+};
+
+/* An entrance tile is very special: there can be only one, a property enforced
+ * by its singleton design
+ */
+struct Entrance : Empty {
+
+  static constexpr char value = 'I';
+  virtual char str() const override { return value; }
+  static Entrance &get() { return singleton_; }
+
+  private:
+    static Entrance singleton_;
+    Entrance() = default;
+};
+Entrance Entrance::singleton_;
+
+/* lightweight factory of tile: all tiles have no state anyway
+ */
+Tile *make_tile(char code) {
+  static Empty empty;
+  static Wall wall;
+  static Exit exit;
+  static Border border;
+  switch (code) {
+  case Empty::value:
+    return &empty;
+  case Wall::value:
+    return &wall;
+  case Entrance::value:
+    return &Entrance::get();
+  case Exit::value:
+    return &exit;
+  case Border::value:
+    return &border;
+  default:
+    throw std::domain_error("invalid tile specification");
+  }
+}
+
+struct Board {
   static constexpr size_t height = 10;
   static constexpr size_t width = 10;
 
-  static constexpr char OUT = 'O';
-  static constexpr char IN = 'I';
-  static constexpr char WALL = '#';
+  Tile** entrance_ = nullptr;
 
-  static constexpr std::pair<size_t, size_t> invalid{-1, -1};
-
-  Screen(std::string const& rc) : in_(invalid), out_(invalid) {
+  Board(std::string const& rc) {
     std::ifstream ifs(rc.c_str());
     if(not ifs)
       throw std::runtime_error("invalid resource: " + rc);
     else {
+      // FIXME: add more input checks
+      auto board_iter = begin();
+      board_iter = std::fill_n(board_iter, width + 2, make_tile(Border::value));
       for(size_t i = 0; i < height; ++i) {
+        *board_iter++ = make_tile(Border::value);
         for(size_t j = 0; j < width; ++j) {
           char point;
           ifs.read(&point, 1);
-          switch(point) {
-            case ' ':
-              screen_[i][j] = false;
-              break;
-            case WALL:
-              screen_[i][j] = true;
-              break;
-            case IN:
-              in_ = std::make_pair(i,j);
-              screen_[i][j] = false;
-              break;
-            case OUT:
-              out_ = std::make_pair(i,j);
-              screen_[i][j] = false;
-              break;
-            default: {
-              std::ostringstream loc;
-              loc << i << ", " << j;
-              throw std::runtime_error("invalid marker at " + loc.str());
-            }
-          }
+          *board_iter++ = make_tile(point);
         }
+        *board_iter++ = make_tile(Border::value);
         char eol;
         ifs.read(&eol, 1);
         if(eol != '\n') // FIXME: not portable
-          std::runtime_error("invalid grid size: greater than expected");
+          throw std::runtime_error("invalid grid size: greater than expected");
       }
-      if(in_ == invalid or out_ == invalid)
-        std::runtime_error("invalid grid: out or in missing");
-
+      board_iter = std::fill_n(board_iter, width + 2, make_tile(Border::value));
+      assert(board_iter == end());
+      auto entrance_iter = std::find(begin(), end(), &Entrance::get());
+      if(entrance_iter == end())
+          throw std::runtime_error("invalid grid no entrance");
+      else
+        entrance_ = entrance_iter;
     }
-    // FIXME: verify we can stop on out_
   }
 
-  bool check(std::string const& commands) {
-    std::pair<size_t, size_t> curr_pos = in_;
-    auto log_position = [&]() {
-      std::clog << "curr pos is: " << curr_pos.first << "," << curr_pos.second << std::endl;
-    };
+  bool run(std::string const& commands) {
+    auto curr_pos = entrance_;
 
-    log_position();
     for(char command : commands) {
       switch(command) {
         case 'h':
@@ -84,99 +144,74 @@ struct Screen {
         default:
           throw std::runtime_error("invalid command");
       }
-      log_position();
     }
-    return curr_pos == out_;
+    return (*curr_pos)->wins();
   }
 
   std::string str() const {
-    constexpr size_t out_width = (width + 2 ), // +2 for surrounding walls
-                     out_height = (height + 2);
-    constexpr char BORDER = '@';
     std::string out;
-    out.reserve((out_width + 1 ) * out_height); // +1 for line markers
-    size_t i, j;
-    auto push_wall_line = [](std::string& out) {
-      std::fill_n(std::back_inserter(out), out_width, BORDER);
-      out.push_back('\n');
-    };
-    push_wall_line(out);
-    for(i = 0; i < height; ++i) {
-      out.push_back(BORDER);
-      for(j = 0; j < width; ++j) {
-        auto curr = std::make_pair(i,j);
-        if(is_wall(curr))
-          out.push_back(WALL);
-        else if(curr == out_) {
-          out.push_back(OUT);
-        }
-        else if(curr == in_) {
-          out.push_back(IN);
-        }
-        else
-          out.push_back(' ');
-      }
-      out.push_back(BORDER);
-      out.push_back('\n');
+    auto out_iter = std::back_inserter(out);
+    for ( Tile* const (&line)[width +2] : board_) {
+      *std::transform(std::begin(line), std::end(line), out_iter,
+                      [](Tile *const tile) { return tile->str(); })++ = '\n';
     }
-    push_wall_line(out);
     return out;
   }
 
 
   private:
 
-  bool is_wall(std::pair<size_t, size_t> const& pos) const { return screen_[pos.first][pos.second]; }
+  using iterator = Tile * *;
+  using const_iterator = Tile * const*;
 
-  void slideLeft(std::pair<size_t, size_t>& curr_pos) const;
-  void slideRight(std::pair<size_t, size_t>& curr_pos) const;
-  void slideUp(std::pair<size_t, size_t>& curr_pos) const;
-  void slideDown(std::pair<size_t, size_t>& curr_pos) const;
+  iterator begin() { return &board_[0][0]; }
+  iterator end() { return begin() + sizeof(board_)/sizeof(Tile*); }
+  const_iterator begin() const { return &board_[0][0]; }
+  const_iterator end() const { return begin() + sizeof(board_)/sizeof(Tile*); }
 
-  bool screen_[height][width];
-  std::pair<size_t, size_t> in_, out_;
+  void slideLeft(iterator& curr_pos) const;
+  void slideRight(iterator& curr_pos) const;
+  void slideUp(iterator& curr_pos) const;
+  void slideDown(iterator& curr_pos) const;
+
+  Tile* board_[height + 2 ][width + 2];
+
 
 };
 
-constexpr std::pair<size_t, size_t> Screen::invalid;
-
-void Screen::slideLeft(std::pair<size_t, size_t>& curr_pos) const {
-  while(curr_pos.second != 0 and not is_wall(curr_pos))
-    curr_pos.second -= 1;
-  if(is_wall(curr_pos))
-    curr_pos.second += 1;
+void Board::slideLeft(iterator& curr_pos) const {
+  while(not (*curr_pos)->blocks())
+    curr_pos -= 1;
+  curr_pos += 1;
 }
-void Screen::slideRight(std::pair<size_t, size_t>& curr_pos) const {
-  while(curr_pos.second != Screen::width and not is_wall(curr_pos))
-    curr_pos.second += 1;
-  if(is_wall(curr_pos))
-    curr_pos.second -= 1;
+void Board::slideRight(iterator& curr_pos) const {
+  while(not (*curr_pos)->blocks())
+    curr_pos += 1;
+  curr_pos -= 1;
 }
 
-void Screen::slideDown(std::pair<size_t, size_t>& curr_pos) const {
-  while(curr_pos.first != Screen::height and not is_wall(curr_pos))
-    curr_pos.first += 1;
-  if(is_wall(curr_pos))
-    curr_pos.first -= 1;
+void Board::slideDown(iterator& curr_pos) const {
+  while(not (*curr_pos)->blocks())
+    curr_pos += width + 2;
+  curr_pos -= width + 2;
 }
 
-void Screen::slideUp(std::pair<size_t, size_t>& curr_pos) const {
-  while(curr_pos.first != 0 and not is_wall(curr_pos))
-    curr_pos.first -= 1;
-  if(is_wall(curr_pos))
-    curr_pos.first += 1;
+void Board::slideUp(iterator& curr_pos) const {
+  while(not (*curr_pos)->blocks())
+    curr_pos -= width + 2;
+  curr_pos += width + 2;
 }
 
 int main(int argc, char* argv[]) {
   std::string map = argc == 1 ? "default.txt" : argv[1];
-  Screen s{map};
+  Board s{map};
   std::cout << s.str() << std::endl;
-  std::fill_n(std::ostream_iterator<char>(std::cout), Screen::width, '=');
-  std::cout << std::endl << "How do I go from " << Screen::IN << " to " << Screen::OUT << "? [hjkl]" << std::endl;
+  std::fill_n(std::ostream_iterator<char>(std::cout), Board::width, '=');
+  std::cout << std::endl << "How do I go from " << Entrance::value << " to " << Exit::value << "? [hjkl]" << std::endl;
 
   std::string commands;
   std::cin >> commands;
-  if(s.check(commands)) {
+  if(s.run(commands)) {
     std::cout << "gotcha!" << std::endl;
     return 0;
   }
