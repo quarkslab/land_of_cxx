@@ -7,7 +7,7 @@ development of old-school yet terribly entertaining, text-based games.
 
 Several tutorial have been designed with care (and love <3), in an increasing
 level of difficulty. Each tutorial contains a compilable skeleton file with the
-game description, and a Makefile to get you started. The makefile contains the
+game description, a reference to useful functions to complete the game (see http://en.cppreference.com for their description!) and a Makefile to get you started. The makefile contains the
 typical ``all``, ``clean`` and ``check`` rules so that you won't loose time
 setting up a minimalist build environment. When lost, ``cd`` to the solution
 directory!
