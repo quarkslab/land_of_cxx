@@ -25,7 +25,7 @@
  * - std::random_device
  * - std::default_random_engine
  * - std::uniform_int_distribution
- * - std::is_blank
+ * - std::isspace
  */
 
 #include <iostream>
@@ -73,7 +73,7 @@ Waldo::Waldo(std::string const & path)
     hide_waldo();
 }
 
-// check a few stuff on the picture and raise if needed
+// check some stuff on the picture and raise if needed
 void Waldo::check_validity() const {
     // TODO: move each check to a member function
     if(std::count(picture_.begin(), picture_.end(), '\n') == 0)

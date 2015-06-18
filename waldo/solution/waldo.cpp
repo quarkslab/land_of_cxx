@@ -50,7 +50,7 @@ Waldo::Waldo(std::string const & path)
     hide_waldo();
 }
 
-// check a few stuff on the picture and raise if needed
+// check some stuff on the picture and raise if needed
 void Waldo::check_validity() const {
     at_least_a_line();
     no_waldo();
@@ -81,7 +81,7 @@ void Waldo::hide_waldo() {
     size_t pos;
     do {
         pos = uniform_dist(rnd);
-    } while(std::isblank(picture_[pos]));
+    } while(std::isspace(picture_[pos]));
     picture_[pos] = waldo;
 }
 
