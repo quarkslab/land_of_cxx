@@ -44,7 +44,7 @@ const char Waldo::waldo;
 // with at least one line and always the same number of columns
 Waldo::Waldo(std::string const & path)
 {
-    std::ifstream ifs(path.c_str());
+    std::ifstream ifs(path);
     picture_ = std::string{std::istreambuf_iterator<char>{ifs}, std::istreambuf_iterator<char>{}};
     check_validity();
     hide_waldo();

@@ -66,7 +66,7 @@ const char Waldo::waldo;
 // with at least one line and always the same number of columns
 Waldo::Waldo(std::string const & path)
 {
-    std::ifstream ifs(path.c_str());
+    std::ifstream ifs(path);
     // TODO: convert the file to a string
     picture_ = "I am waldo";
     check_validity();
