@@ -35,7 +35,7 @@
 using greyscale_image = std::vector<std::vector<unsigned char>>;
 
 greyscale_image read_pgm(std::string const& filename) {
-  std::ifstream ifs(filename.c_str());
+  std::ifstream ifs(filename);
   // FIXME: check if the file opens correctly
   if(true) {
     char magic[2];

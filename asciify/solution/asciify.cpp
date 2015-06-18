@@ -24,7 +24,7 @@
 #include <iostream>
 
 std::vector<std::vector<unsigned char>> read_pgm(std::string const& filename) {
-  std::ifstream ifs(filename.c_str());
+  std::ifstream ifs(filename);
   if(ifs) {
     char magic[2];
     ifs >> magic;
