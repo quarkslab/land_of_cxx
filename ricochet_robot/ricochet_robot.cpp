@@ -101,10 +101,10 @@ struct Board {
         char eol;
         ifs.read(&eol, 1);
         if(eol != '\n')
-          std::runtime_error("invalid grid size: greater than expected");
+          throw std::runtime_error("invalid grid size: greater than expected");
       }
       if(in_ == invalid or out_ == invalid)
-        std::runtime_error("invalid grid: out or in missing");
+        throw std::runtime_error("invalid grid: out or in missing");
 
     }
   }
