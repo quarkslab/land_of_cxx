@@ -116,7 +116,7 @@ class AI {
 /* prints some information concerning the usage of this (great) program and
  * return an error code
  */
-// FIXME: accept a string argument that contains the neame of the program
+// FIXME: accept a string argument that contains the name of the program
 static
 int usage() {
     // TODO: prints a more informative string to the standard error, that includes the name of the program
