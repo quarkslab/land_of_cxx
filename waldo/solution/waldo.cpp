@@ -66,7 +66,7 @@ void Waldo::no_waldo() const {
         throw InvalidWaldo("Waldo symbol already in input file");
 }
 void Waldo::at_least_a_symbol() const {
-    if(std::all_of(picture_.begin(), picture_.end(), std::isblank))
+    if(std::all_of(picture_.begin(), picture_.end(), [](char c) { return std::isblank(c); }))
         throw InvalidWaldo("input file full of blank");
 }
 
