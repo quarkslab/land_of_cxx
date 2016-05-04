@@ -76,10 +76,10 @@ class MyBigPocky {
     std::initializer_list<bool> __attribute__((unused)) _ {(pocket_.emplace_back(new Dices(dices)), true)...};
   }
 
-  auto begin() { return pocket_.begin(); }
-  auto begin() const { return pocket_.begin(); }
-  auto end() { return pocket_.end(); }
-  auto end() const { return pocket_.end(); }
+  auto begin() -> decltype(pocket_.begin()) { return pocket_.begin(); }
+  auto begin() const  -> decltype(pocket_.begin()) { return pocket_.begin(); }
+  auto end()  -> decltype(pocket_.end()) { return pocket_.end(); }
+  auto end() const -> decltype(pocket_.end()) { return pocket_.end(); }
 };
 
 template<class... Dices>
@@ -89,7 +89,8 @@ class MyLittlePocky {
   public:
 
   MyLittlePocky() = default;
-  auto & pocket() { return pocket_; }
+  std::tuple<Dices...> & pocket() { return pocket_; }
+  std::tuple<Dices...> const & pocket() const { return pocket_; }
   // no begin / end
 
 };
@@ -113,9 +114,16 @@ void apply(std::tuple<Types...>& values, Op&& op) {
 //FIXME: check concepts for Pocket, and handle MyLittlePocky case
 template<class Pocket>
 void reroll(Pocket& P) {
-  std::for_each(P.begin(), P.end(), [](auto & dice) { dice->reroll(); });
+  for(auto & dice : P)
+    dice->reroll();
 }
 
+struct Dumper {
+  template<class D>
+    void operator()(D &&v) {
+      std::cout << '\t' << v.name() << ": " << v.value() << std::endl;
+    }
+};
 
 int main() {
   MyBigPocky MBP{D6(), D20(), D6(), Coin()};
@@ -131,7 +139,7 @@ int main() {
 
   MyLittlePocky<D6, D20, D6, Coin> MLP;
   std::cout << "Dices are magic!\n";
-  apply(MLP.pocket(), [](auto v) -> void { std::cout << '\t' << v.name() << ": " << v.value() << std::endl; });
+  apply(MLP.pocket(), Dumper{});
 
   std::cout << "weight: " << sizeof(MLP) << "\n";
   return 0;
