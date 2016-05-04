@@ -96,20 +96,21 @@ class MyLittlePocky {
 };
 
 namespace details {
-  template<class T, class Op>
-  void apply(T& , Op&& , std::integral_constant<size_t, 0>) {
+  template<class Op, class T>
+  void map(Op&& , T& , std::integral_constant<size_t, 0>) {
   }
-  template<class T, class Op, size_t N>
-  void apply(T& values, Op&& op, std::integral_constant<size_t, N>) {
+  template<class Op, class T, size_t N>
+  void map(Op&& op, T& values, std::integral_constant<size_t, N>) {
     op(std::get<N-1>(values));
-    apply(values, std::forward<Op>(op), std::integral_constant<size_t, N - 1>{});
+    map(std::forward<Op>(op), values, std::integral_constant<size_t, N - 1>{});
   }
 }
 
 template<class Op, class... Types>
-void apply(std::tuple<Types...>& values, Op&& op) {
-  details::apply(values, std::forward<Op>(op), std::integral_constant<size_t, sizeof...(Types)>{});
+void map(Op&& op, std::tuple<Types...>& values) {
+  details::map(std::forward<Op>(op), values, std::integral_constant<size_t, sizeof...(Types)>{});
 }
+
 
 //FIXME: check concepts for Pocket, and handle MyLittlePocky case
 template<class Pocket>
@@ -139,7 +140,7 @@ int main() {
 
   MyLittlePocky<D6, D20, D6, Coin> MLP;
   std::cout << "Dices are magic!\n";
-  apply(MLP.pocket(), Dumper{});
+  map(Dumper{}, MLP.pocket());
 
   std::cout << "weight: " << sizeof(MLP) << "\n";
   return 0;

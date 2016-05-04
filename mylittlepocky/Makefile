@@ -1,4 +1,4 @@
-TARGET=mylittlepocky
+TARGET=mylittlepocky solution/mylittlepocky
 TARGETS=$(TARGET)
 CXXFLAGS=-std=c++11 -Wall -g -Wextra
 
