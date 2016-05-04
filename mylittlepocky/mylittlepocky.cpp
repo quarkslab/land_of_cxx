@@ -33,7 +33,6 @@ class D6 : public Dice {
 
   public:
   D6() { reroll(); }
-  D6(D6 const&) = default;
   unsigned value() const override { return state_; }
   void reroll() override {
     state_ = std::uniform_int_distribution<int>(1,6)(RandomEngine);
@@ -46,7 +45,6 @@ class D20 : public Dice {
 
   public:
   D20() { reroll(); }
-  D20(D20 const&) = default;
   unsigned value() const override { return state_; }
   void reroll() override {
     state_ = std::uniform_int_distribution<int>(1,20)(RandomEngine);
@@ -60,7 +58,6 @@ class Coin : public Dice {
 
   public:
   Coin() { reroll(); }
-  Coin(Coin const&) = default;
   unsigned value() const override { return state_; }
   void reroll() override {
     state_ = std::uniform_int_distribution<int>(1,2)(RandomEngine);
@@ -110,7 +107,7 @@ namespace details {
 
 template<class Op, class... Types>
 void apply(std::tuple<Types...>& values, Op&& op) {
-  details::apply(values, op, std::integral_constant<size_t, sizeof...(Types)>{});
+  details::apply(values, std::forward<Op>(op), std::integral_constant<size_t, sizeof...(Types)>{});
 }
 
 //FIXME: check concepts for Pocket, and handle MyLittlePocky case
