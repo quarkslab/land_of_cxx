@@ -120,7 +120,7 @@ void reroll(Pocket& P) {
 
 struct Dumper {
   template<class D>
-    void operator()(D &&v) {
+    void operator()(D const &v) const {
       std::cout << '\t' << v.name() << ": " << v.value() << std::endl;
     }
 };
